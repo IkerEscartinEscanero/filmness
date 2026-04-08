@@ -14,14 +14,15 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/', [FilmController::class, 'index'])->name('home');
 
-// TODO: ruta para el perfil del usuario, con sus datos, películas vistas, reseñas, descuentos...
-// Route::get('/perfil', function () {
-//     return Inertia::render('Profile', [
-//         'user' => auth()->user(),
-//         'movies' => [], // luego
-//         'reviews' => [],
-//         'discounts' => []
-//     ]);
-// })->middleware(['auth', 'verified'])->name('perfil o profile');
+// Rutas para gestión de películas (solo admins)
+Route::middleware('auth')->group(function () {
+    Route::get('/films/create', [FilmController::class, 'create'])->name('films.create');
+    Route::post('/films', [FilmController::class, 'store'])->name('films.store');
+    Route::get('/films/{film}/edit', [FilmController::class, 'edit'])->name('films.edit');
+    Route::put('/films/{film}', [FilmController::class, 'update'])->name('films.update');
+    Route::delete('/films/{film}', [FilmController::class, 'destroy'])->name('films.destroy');
+});
+
+// 
 
 require __DIR__.'/auth.php';
