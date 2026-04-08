@@ -67,7 +67,6 @@ const submit = () => {
                             type="date"
                             class="mt-1 block w-full text-white bg-slate-800 border-slate-600 focus:border-yellow-500"
                             v-model="form.birth_date"
-                            required
                             autocomplete="bday"
                         />
                         <InputError class="mt-2" :message="form.errors.birth_date" />

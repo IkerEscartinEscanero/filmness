@@ -16,8 +16,8 @@ class FilmSeeder extends Seeder
         DB::table('films')->insert([
             [
                 'title' => 'Super Mario Galaxy: La Película',
-                'logo' => 'images/films/super_mario_galaxy_logo.jpg',
-                'poster' => 'images/films/super_mario_galaxy_poster.jpg',
+                'logo' => 'logos/super_mario_galaxy_logo.jpg',
+                'poster' => 'posters/super_mario_galaxy_poster.jpg',
                 'release_date' => '2026-04-01',
                 'director' => 'Michael Jelenic, Aaron Horvath',
                 'genre' => 'Acción',

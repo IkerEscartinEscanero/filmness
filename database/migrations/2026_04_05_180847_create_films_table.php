@@ -16,12 +16,12 @@ return new class extends Migration
             $table->string('title');
             $table->string('logo');
             $table->string('poster');
-            $table->date('release_date')->nullable();
+            $table->date('release_date');
             $table->string('director')->nullable();
-            $table->string('genre')->nullable();
+            $table->string('genre');
             $table->string('distribution')->nullable();
-            $table->text('synopsis')->nullable();
-            $table->integer('duration')->nullable();
+            $table->text('synopsis');
+            $table->integer('duration');
             $table->string('trailer');
             $table->timestamps();
         });
