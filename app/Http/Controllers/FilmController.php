@@ -18,10 +18,12 @@ class FilmController extends Controller
 
         return Inertia::render('Home', [
             'movies' => $films,
-            'canLogin' => Route::has('login'),
-            'canRegister' => Route::has('register'),
-            'laravelVersion' => Application::VERSION,
-            'phpVersion' => PHP_VERSION,
+        ]);
+    }
+
+    public function show(Film $film) {
+        return Inertia::render('Movies/Show', [
+            'film' => $film,
         ]);
     }
 

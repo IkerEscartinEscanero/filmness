@@ -1,5 +1,6 @@
 <script setup>
     import Nav from '@/Layouts/Nav.vue';
+    import { Link } from '@inertiajs/vue3';
     import { ref } from 'vue';
 
     // State to show or hide the profile submenu
@@ -18,17 +19,19 @@
 </script>
 
 <template>
-    <div class="bg-slate-900 backdrop-blur-md border-b border-yellow-500/20 shadow-lg transition-all duration-300">
+    <div class="sticky top-0 z-50 bg-slate-900 backdrop-blur-md border-b border-yellow-500/20 shadow-lg transition-all duration-300">
         <div class="px-6 py-4 flex items-center justify-between">
             <!-- Logo -->
             <div class="flex items-center gap-3">
-                <img src="/images/Logo.png" class="w-16 h-16 md:w-24 md:h-24 transition-transform duration-300 hover:scale-110" />
-                <span class="text-yellow-500 font-bold text-2xl md:text-3xl tracking-wide">FilmNess</span>
+                <Link :href="route('home')">
+                    <img src="/images/Logo.png" class="w-16 h-16 md:w-24 md:h-24 transition-transform duration-300 hover:scale-110" />
+                </Link>
+                <Link :href="route('home')" class="text-yellow-500 font-bold text-2xl md:text-3xl tracking-wide">FilmNess</Link>
             </div>
 
             <!-- Principal header in desktop -->
             <div class="hidden md:flex gap-6 items-center text-sm">
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Inicio</a>
+                <Link :href="route('home')" class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Inicio</Link>
                 <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Cartelera</a>
                 <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Próximos estrenos</a>
                 <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Sobre nosotros</a>
@@ -43,14 +46,22 @@
                     <button @click="toggleNav" class="btn btn-circle btn-outline border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 transition-all duration-300">
                         <img src="/images/FotoPerfil.png" class="w-9 h-9 rounded-full" />
                     </button>
-                    <div
-                        v-if="showNav"
-                        class="absolute right-0 mt-2 bg-slate-800 border border-yellow-500/20 rounded-lg shadow-xl backdrop-blur-md z-50 transition-all duration-300 transform opacity-0 scale-95"
-                        :class="{ 'opacity-100 scale-100': showNav }"
-                        @click.stop
+                    <Transition
+                        enter-active-class="transition-all duration-200 ease-out"
+                        enter-from-class="opacity-0 scale-95 -translate-y-1"
+                        enter-to-class="opacity-100 scale-100 translate-y-0"
+                        leave-active-class="transition-all duration-150 ease-in"
+                        leave-from-class="opacity-100 scale-100 translate-y-0"
+                        leave-to-class="opacity-0 scale-95 -translate-y-1"
                     >
-                        <Nav :canLogin="canLogin" :canRegister="canRegister" @close="closeNav" />
-                    </div>
+                        <div
+                            v-if="showNav"
+                            class="absolute right-0 mt-2 bg-slate-800 border border-yellow-500/20 rounded-lg shadow-xl backdrop-blur-md z-50"
+                            @click.stop
+                        >
+                            <Nav @close="closeNav" />
+                        </div>
+                    </Transition>
                 </div>
 
                 <!-- Cart -->
@@ -67,13 +78,22 @@
                     <button @click="toggleNav" class="btn btn-circle btn-outline border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 transition-all duration-300">
                         <img src="/images/FotoPerfil.png" class="w-8 h-8 rounded-full" />
                     </button>
-                    <div
-                        v-if="showNav"
-                        class="absolute right-0 mt-2 bg-slate-800 border border-yellow-500/20 rounded-lg shadow-xl backdrop-blur-md z-50"
-                        @click.stop
+                    <Transition
+                        enter-active-class="transition-all duration-200 ease-out"
+                        enter-from-class="opacity-0 scale-95 -translate-y-1"
+                        enter-to-class="opacity-100 scale-100 translate-y-0"
+                        leave-active-class="transition-all duration-150 ease-in"
+                        leave-from-class="opacity-100 scale-100 translate-y-0"
+                        leave-to-class="opacity-0 scale-95 -translate-y-1"
                     >
-                        <Nav :canLogin="canLogin" :canRegister="canRegister" @close="closeNav" />
-                    </div>
+                        <div
+                            v-if="showNav"
+                            class="absolute right-0 mt-2 bg-slate-800 border border-yellow-500/20 rounded-lg shadow-xl backdrop-blur-md z-50"
+                            @click.stop
+                        >
+                            <Nav @close="closeNav" />
+                        </div>
+                    </Transition>
                 </div>
 
                 <!-- Hamburger for mobile menu -->
@@ -90,7 +110,7 @@
 
         <!-- Mobile dropdown menu -->
         <div v-if="showMobileMenu" class="md:hidden border-t border-yellow-500/20 px-6 py-4 flex flex-col gap-4 text-sm">
-            <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Inicio</a>
+            <Link :href="route('home')" class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Inicio</Link>
             <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Cartelera</a>
             <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Estrenos</a>
             <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Sobre nosotros</a>

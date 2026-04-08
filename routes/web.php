@@ -13,6 +13,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/', [FilmController::class, 'index'])->name('home');
+Route::get('/movies/{film}', [FilmController::class, 'show'])->name('movies.show');
 
 // Rutas para gestión de películas (solo admins)
 Route::middleware('auth')->group(function () {

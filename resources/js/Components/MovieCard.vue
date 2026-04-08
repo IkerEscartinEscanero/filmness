@@ -27,7 +27,7 @@ const resolveStoragePath = (path) => {
 const handleEnter = () => {
     timeout = setTimeout(() => {
         showPreview.value = true;
-    }, 300);
+    }, 600);
 };
 
 const handleLeave = () => {
