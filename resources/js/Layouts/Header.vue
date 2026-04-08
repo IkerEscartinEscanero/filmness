@@ -28,10 +28,10 @@
 
             <!-- Principal header in desktop -->
             <div class="hidden md:flex gap-6 items-center text-sm">
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Inicio</a>
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Cartelera</a>
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Estrenos</a>
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium">Sobre nosotros</a>
+                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Inicio</a>
+                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Cartelera</a>
+                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Próximos estrenos</a>
+                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Sobre nosotros</a>
 
                 <!-- Dark mode -->
                 <button class="btn btn-sm btn-ghost text-slate-300 hover:text-yellow-500 transition-colors duration-300">

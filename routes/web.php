@@ -23,6 +23,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/films/{film}', [FilmController::class, 'destroy'])->name('films.destroy');
 });
 
-// 
-
 require __DIR__.'/auth.php';
