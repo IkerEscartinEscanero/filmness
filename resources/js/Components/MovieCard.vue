@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { getTrailerSource } from '@/utils/trailer';
 
 // Props to load the movie data
 const props = defineProps({
@@ -18,13 +19,11 @@ const formatDate = (dateStr) => {
 };
 
 // Attribute to know when to modify design aspects when hovering over a movie
-const showPreview = ref(false);
-const posterUrl = computed(() => resolveStoragePath(props.movie?.poster));
-const trailerUrl = computed(() => resolveStoragePath(props.movie?.trailer));
-let timeout = null;
-
-const resolveStoragePath = (path) => {
+const resolveMediaPath = (path) => {
     if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
     if (path.startsWith('/storage/')) {
         return path;
     }
@@ -33,6 +32,12 @@ const resolveStoragePath = (path) => {
     }
     return `/storage/${path}`;
 };
+
+// Attribute to know when to modify design aspects when hovering over a movie
+const showPreview = ref(false);
+const posterUrl = computed(() => resolveMediaPath(props.movie?.poster));
+const trailerPreviewSource = computed(() => getTrailerSource(props.movie?.trailer_url, { preview: true }));
+let timeout = null;
 
 const handleEnter = () => {
     timeout = setTimeout(() => {
@@ -86,18 +91,21 @@ const goToMovie = () => {
     </div>
 
     <div
-        v-if="showPreview && trailerUrl"
+        v-if="showPreview && trailerPreviewSource.type !== 'none'"
         class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
     >
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
         <div class="relative w-[60%] max-w-4xl rounded-3xl overflow-hidden shadow-2xl">
-        <video
-            :src="trailerUrl"
-            autoplay
-            loop
-            class="w-full h-full object-cover"
-        />
+        <iframe
+            v-if="trailerPreviewSource.type === 'embed'"
+            :src="trailerPreviewSource.src"
+            class="w-full aspect-video"
+            title="Trailer preview"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+        ></iframe>
         </div>
     </div>
 </template>

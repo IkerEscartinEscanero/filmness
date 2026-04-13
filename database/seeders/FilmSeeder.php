@@ -24,7 +24,7 @@ class FilmSeeder extends Seeder
                 'distribution' => 'Benny Safdie, Anya Taylor-Joy, Chris Pratt, Jack Black, Charlie Day, Keegan-Michael Key, Kevin Michael Richardson, Brie Larson',
                 'synopsis' => 'La película tiene lugar después de los acontecimientos de la primera, en la que dos hermanos, Mario y Luigi, y la princesa Peach emprenden una aventura hasta los confines del espacio y a través de la galaxia.',
                 'duration' => 98,
-                'trailer' => 'trailers/Trailer_SMG_Pelicula.mp4',
+                'trailer_url' => 'https://www.youtube.com/watch?v=VaGc3NrsfBI',
                 'created_at' => now(),
                 'updated_at' => now()
             ]

@@ -1,17 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Film;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-
-use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class FilmController extends Controller
 {
+    private const YOUTUBE_URL_REGEX = '/^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/)|youtu\.be\/)[A-Za-z0-9_-]{11}([&?].*)?$/';
+
     public function index() {
         $today = now()->toDateString();
 
@@ -64,16 +64,14 @@ class FilmController extends Controller
     }
 
     public function create() {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
+        $this->ensureAdmin();
+
         return Inertia::render('Films/Create');
     }
 
     public function store(Request $request) {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
+        $this->ensureAdmin();
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -84,7 +82,7 @@ class FilmController extends Controller
             'distribution' => 'nullable|string|max:255',
             'synopsis' => 'required|string',
             'duration' => 'required|integer',
-            'trailer' => 'required|mimes:mp4,avi,mov,wmv|max:524288',
+            'trailer_url' => $this->youtubeTrailerRules(),
         ]);
 
         // Handle file uploads
@@ -94,9 +92,6 @@ class FilmController extends Controller
         if ($request->hasFile('poster')) {
             $validated['poster'] = $request->file('poster')->store('posters', 'public');
         }
-        if ($request->hasFile('trailer')) {
-            $validated['trailer'] = $request->file('trailer')->store('trailers', 'public');
-        }
 
         Film::create($validated);
 
@@ -104,18 +99,16 @@ class FilmController extends Controller
     }
 
     public function edit(Film $film) {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
+        $this->ensureAdmin();
+
         return Inertia::render('Films/Edit', [
             'film' => $film,
         ]);
     }
 
     public function update(Request $request, Film $film) {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
+        $this->ensureAdmin();
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -126,10 +119,9 @@ class FilmController extends Controller
             'distribution' => 'nullable|string|max:255',
             'synopsis' => 'required|string',
             'duration' => 'required|integer',
-            'trailer' => 'nullable|mimes:mp4,avi,mov,wmv|max:524288',
+            'trailer_url' => $this->youtubeTrailerRules(),
         ]);
 
-        // Handle file uploads if the logo, poster or trailer are not being edited keeping the old ones 
         if ($request->hasFile('logo')) {
             if ($film->logo) {
                 Storage::disk('public')->delete($film->logo);
@@ -146,14 +138,6 @@ class FilmController extends Controller
         } else {
             unset($validated['poster']);
         }
-        if ($request->hasFile('trailer')) {
-            if ($film->trailer) {
-                Storage::disk('public')->delete($film->trailer);
-            }
-            $validated['trailer'] = $request->file('trailer')->store('trailers', 'public');
-        } else {
-            unset($validated['trailer']);
-        }
 
         $film->update($validated);
 
@@ -161,21 +145,33 @@ class FilmController extends Controller
     }
 
     public function destroy(Film $film) {
-        if (Auth::user()->role !== 'admin') {
-            abort(403);
-        }
-        // Delete associated files
+        $this->ensureAdmin();
+
         if ($film->logo) {
             Storage::disk('public')->delete($film->logo);
         }
+
         if ($film->poster) {
             Storage::disk('public')->delete($film->poster);
         }
-        if ($film->trailer) {
-            Storage::disk('public')->delete($film->trailer);
-        }
+
         $film->delete();
 
         return redirect()->route('home')->with('success', 'Película eliminada exitosamente.');
+    }
+
+    private function youtubeTrailerRules(): array
+    {
+        return [
+            'required',
+            'string',
+            'max:2048',
+            'regex:'.self::YOUTUBE_URL_REGEX,
+        ];
+    }
+
+    private function ensureAdmin(): void
+    {
+        abort_unless(Auth::user()?->role === 'admin', 403);
     }
 }

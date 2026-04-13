@@ -3,6 +3,7 @@ import Layout from '@/Layouts/Layout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { getTrailerSource } from '@/utils/trailer';
 
 const props = defineProps({
     film: Object,
@@ -11,16 +12,17 @@ const props = defineProps({
 const page = usePage();
 const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
 
-const resolveStoragePath = (path) => {
+const resolveMediaPath = (path) => {
     if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
     if (path.startsWith('/storage/')) return path;
     if (path.startsWith('storage/')) return `/${path}`;
     return `/storage/${path}`;
 };
 
-const posterUrl = computed(() => resolveStoragePath(props.film?.poster));
-const trailerUrl = computed(() => resolveStoragePath(props.film?.trailer));
-const logoUrl = computed(() => resolveStoragePath(props.film?.logo));
+const posterUrl = computed(() => resolveMediaPath(props.film?.poster));
+const trailerSource = computed(() => getTrailerSource(props.film?.trailer_url));
+const logoUrl = computed(() => resolveMediaPath(props.film?.logo));
 
 const userRating = ref(0);
 const hoverRating = ref(0);
@@ -140,17 +142,21 @@ const formatDate = (date) => {
                 <!-- Right column: showtimes + trailer -->
                 <div class="flex flex-col gap-6">
                     <!-- Trailer -->
-                    <div v-if="trailerUrl">
+                    <div v-if="trailerSource.type !== 'none'">
                         <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                             <span class="w-1 h-5 bg-yellow-500 rounded-full"></span>
                             Tráiler
                         </h2>
                         <div class="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
-                            <video
-                                :src="trailerUrl"
-                                controls
-                                class="w-full aspect-video object-cover"
-                            />
+                            <iframe
+                                v-if="trailerSource.type === 'embed'"
+                                :src="trailerSource.src"
+                                class="w-full aspect-video"
+                                title="Trailer"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allowfullscreen
+                            ></iframe>
                         </div>
                     </div>
 

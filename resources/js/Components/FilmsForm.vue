@@ -1,7 +1,8 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { getTrailerSource } from '@/utils/trailer';
 
 const props = defineProps({
     film: {
@@ -22,19 +23,22 @@ const form = useForm({
     distribution: props.film?.distribution ?? '',
     synopsis: props.film?.synopsis ?? '',
     duration: props.film?.duration ?? '',
-    trailer: null,
+    trailer_url: props.film?.trailer_url ?? '',
 });
 
 const logoPreview = ref(null);
 const posterPreview = ref(null);
-const trailerPreview = ref(null);
 
-const resolveStoragePath = (path) => {
+const resolveMediaPath = (path) => {
     if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
     if (path.startsWith('/storage/')) return path;
     if (path.startsWith('storage/')) return `/${path}`;
     return `/storage/${path}`;
 };
+
+const trailerPreviewSource = computed(() => getTrailerSource(form.trailer_url));
+const hasTrailerInput = computed(() => !!form.trailer_url?.trim());
 
 const handleLogoChange = (e) => {
     const file = e.target.files[0];
@@ -48,13 +52,6 @@ const handlePosterChange = (e) => {
     if (!file) return;
     form.poster = file;
     posterPreview.value = URL.createObjectURL(file);
-};
-
-const handleTrailerChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    form.trailer = file;
-    trailerPreview.value = URL.createObjectURL(file);
 };
 
 const submit = () => {
@@ -102,7 +99,7 @@ const submit = () => {
                     <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-yellow-500 transition-colors duration-200">
                         <img
                             v-if="logoPreview || (isEditing && props.film.logo)"
-                            :src="logoPreview ?? resolveStoragePath(props.film.logo)"
+                            :src="logoPreview ?? resolveMediaPath(props.film.logo)"
                             class="max-h-36 mx-auto rounded mb-2 object-contain"
                         />
                         <div v-else class="py-6 text-slate-400 text-sm">Haz clic para seleccionar un logo</div>
@@ -127,7 +124,7 @@ const submit = () => {
                     <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-yellow-500 transition-colors duration-200">
                         <img
                             v-if="posterPreview || (isEditing && props.film.poster)"
-                            :src="posterPreview ?? resolveStoragePath(props.film.poster)"
+                            :src="posterPreview ?? resolveMediaPath(props.film.poster)"
                             class="max-h-48 mx-auto rounded mb-2 object-contain"
                         />
                         <div v-else class="py-6 text-slate-400 text-sm">Haz clic para seleccionar un póster</div>
@@ -210,29 +207,31 @@ const submit = () => {
             </div>
 
             <div>
-                <label for="trailer" class="block text-sm font-medium text-slate-300 mb-1">Tráiler *</label>
-                <label class="block cursor-pointer">
+                <label for="trailer_url" class="block text-sm font-medium text-slate-300 mb-1">URL del tráiler *</label>
+                <div class="space-y-3">
                     <input
-                        id="trailer"
-                        type="file"
-                        @change="handleTrailerChange"
-                        accept="video/*"
-                        class="hidden"
+                        id="trailer_url"
+                        v-model="form.trailer_url"
+                        type="url"
+                        placeholder="https://www.youtube.com/..."
+                        class="mt-1 block w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                        required
                     />
                     <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-yellow-500 transition-colors duration-200">
-                        <video
-                            v-if="trailerPreview || (isEditing && props.film.trailer)"
-                            :src="trailerPreview ?? resolveStoragePath(props.film.trailer)"
-                            controls
-                            class="max-h-48 mx-auto rounded mb-2 w-full"
-                        />
-                        <div v-else class="py-6 text-slate-400 text-sm">Haz clic para seleccionar un tráiler</div>
-                        <p class="text-xs text-slate-400">
-                            {{ trailerPreview ? 'Nuevo vídeo seleccionado — haz clic para cambiarlo' : (isEditing && props.film.trailer ? 'Haz clic para cambiar el tráiler' : 'Seleccionar vídeo') }}
-                        </p>
+                        <iframe
+                            v-if="trailerPreviewSource.type === 'embed'"
+                            :src="trailerPreviewSource.src"
+                            class="aspect-video w-full rounded mb-2"
+                            title="Vista previa del trailer"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen
+                        ></iframe>
+                        <div v-else class="py-6 text-slate-400 text-sm">Introduce una URL de YouTube válida</div>
+                        <p v-if="hasTrailerInput && trailerPreviewSource.type === 'none'" class="text-xs text-red-400">Solo se permiten enlaces de YouTube.</p>
                     </div>
-                </label>
-                <span v-if="form.errors.trailer" class="text-red-400 text-sm">{{ form.errors.trailer }}</span>
+                </div>
+                <span v-if="form.errors.trailer_url" class="text-red-400 text-sm">{{ form.errors.trailer_url }}</span>
             </div>
 
             <div class="flex justify-end space-x-4">

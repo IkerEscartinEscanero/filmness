@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Film extends Model
 {
-
     protected $fillable = [
         'title',
         'logo',
@@ -17,6 +16,6 @@ class Film extends Model
         'distribution',
         'synopsis',
         'duration',
-        'trailer'
+        'trailer_url'
     ];
 }
