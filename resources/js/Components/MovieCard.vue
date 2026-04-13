@@ -4,8 +4,18 @@ import { router } from '@inertiajs/vue3';
 
 // Props to load the movie data
 const props = defineProps({
-  movie: Object,
+    movie: Object,
+    showDate: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 // Attribute to know when to modify design aspects when hovering over a movie
 const showPreview = ref(false);
@@ -57,6 +67,14 @@ const goToMovie = () => {
         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
 
         <div class="absolute inset-0 bg-black/20 opacity-0 transition duration-300 group-hover:opacity-100"></div>
+
+        <!-- Release date badge (top-right corner, shown only when showDate=true) -->
+        <div
+            v-if="showDate && movie.release_date"
+            class="absolute top-3 right-3 rounded-full bg-yellow-500/90 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-slate-900 shadow-md"
+        >
+            {{ formatDate(movie.release_date) }}
+        </div>
 
         <div class="absolute bottom-0 left-0 right-0 p-4">
         <div class="rounded-3xl border border-white/10 bg-black/60 px-4 py-3 backdrop-blur-xl">

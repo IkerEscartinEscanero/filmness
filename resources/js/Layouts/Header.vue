@@ -32,8 +32,8 @@
             <!-- Principal header in desktop -->
             <div class="hidden md:flex gap-6 items-center text-sm">
                 <Link :href="route('home')" class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Inicio</Link>
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Cartelera</a>
-                <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Próximos estrenos</a>
+                <Link :href="route('billboard')" class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Cartelera</Link>
+                <Link :href="route('upcoming')" class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Próximos estrenos</Link>
                 <a class="text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer">Sobre nosotros</a>
 
                 <!-- Dark mode -->

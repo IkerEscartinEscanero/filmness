@@ -13,17 +13,53 @@ use Illuminate\Http\Request;
 class FilmController extends Controller
 {
     public function index() {
-        // Todas las películas de la base de datos y del seeder
-        $films = Film::all();
+        $today = now()->toDateString();
+
+        // Up to 4 upcoming films (release date in the future)
+        $upcomingFilms = Film::where('release_date', '>', $today)
+            ->orderBy('release_date')
+            ->limit(4)
+            ->get();
+
+        // Up to 8 films currently on billboard (release date today or past)
+        $billboardFilms = Film::where('release_date', '<=', $today)
+            ->orderByDesc('release_date')
+            ->limit(8)
+            ->get();
 
         return Inertia::render('Home', [
-            'movies' => $films,
+            'upcomingFilms' => $upcomingFilms,
+            'billboardFilms' => $billboardFilms,
         ]);
     }
 
     public function show(Film $film) {
         return Inertia::render('Movies/Show', [
             'film' => $film,
+        ]);
+    }
+
+    public function billboard() {
+        $today = now()->toDateString();
+
+        $films = Film::where('release_date', '<=', $today)
+            ->orderByDesc('release_date')
+            ->get();
+
+        return Inertia::render('Cartelera', [
+            'films' => $films,
+        ]);
+    }
+
+    public function upcoming() {
+        $today = now()->toDateString();
+
+        $films = Film::where('release_date', '>', $today)
+            ->orderBy('release_date')
+            ->get();
+
+        return Inertia::render('ProximosEstrenos', [
+            'films' => $films,
         ]);
     }
 
