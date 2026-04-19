@@ -1,6 +1,6 @@
 <script setup>
     import Layout from '@/Layouts/Layout.vue';
-    import MovieCard from '@/Components/MovieCard.vue';
+    import FilmsSection from '@/Components/FilmsSection.vue';
     import DeleteFilmModal from '@/Components/DeleteFilmModal.vue';
     import { Head } from '@inertiajs/vue3';
     import { computed, ref } from 'vue';
@@ -41,8 +41,7 @@
 
         <main class="min-h-screen bg-[#0F172A] text-white">
             <div class="mx-auto max-w-7xl px-6 py-10">
-
-                <!-- Admin: tabla de gestión -->
+                <!-- Admin: management table -->
                 <div v-if="isAdmin" class="mb-16">
                     <div class="flex justify-between items-center mb-8">
                         <h1 class="text-3xl font-semibold text-white">Gestión de próximos estrenos</h1>
@@ -81,27 +80,23 @@
                     </div>
                 </div>
 
-                <!-- Vista para todos: cuadrícula de próximos estrenos con fecha -->
                 <section>
-                    <p class="text-sm uppercase tracking-[0.4em] text-yellow-300">Próximamente</p>
-                    <h2 class="mt-2 text-3xl font-semibold text-white">Próximos estrenos</h2>
-
-                    <div v-if="films && films.length" class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-8 justify-items-center">
-                        <MovieCard
-                            v-for="film in films"
-                            :key="film.id"
-                            :movie="film"
-                            :show-date="true"
-                        />
-                    </div>
-                    <p v-else class="mt-6 text-slate-400">No hay próximos estrenos disponibles por el momento.</p>
+                    <!-- This shared section avoids repeating the public grid layout -->
+                    <FilmsSection
+                        eyebrow="Próximamente"
+                        title="Próximos estrenos"
+                        :films="films"
+                        empty-message="No hay próximos estrenos disponibles por el momento."
+                        :show-date="true"
+                        section-class=""
+                    />
                 </section>
 
             </div>
         </main>
     </Layout>
 
-    <!-- Modal de confirmación de borrado -->
+    <!-- Modal to confirm deletion -->
     <DeleteFilmModal
         :show="showDeleteModal"
         @cancel="cancelDelete"

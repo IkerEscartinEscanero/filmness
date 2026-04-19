@@ -1,8 +1,7 @@
 <script setup>
     import Layout from '@/Layouts/Layout.vue';
-    import MovieCard from '@/Components/MovieCard.vue';
+    import FilmsSection from '@/Components/FilmsSection.vue';
     import { Head } from '@inertiajs/vue3';
-    import { usePage } from '@inertiajs/vue3';
 
     defineProps({
         upcomingFilms: Array,
@@ -16,38 +15,26 @@
 
         <main class="min-h-screen bg-[#0F172A] text-white">
             <div class="mx-auto max-w-7xl px-6 py-10">
-                <!-- Billboard -->
-                <section class="mt-16">
-                    <p class="text-sm uppercase tracking-[0.4em] text-yellow-300">En cines</p>
-                    <h2 class="mt-2 text-3xl font-semibold text-white">Cartelera</h2>
+                <!-- Reusable section for the public film blocks shown on Home. -->
+                <FilmsSection
+                    eyebrow="En cine"
+                    title="Cartelera"
+                    :films="billboardFilms"
+                    empty-message="No hay películas en cartelera actualmente."
+                    section-class=""
+                    :use-carousel="true"
+                />
 
-                    <div v-if="billboardFilms && billboardFilms.length" class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-8 justify-items-center">
-                        <MovieCard
-                            v-for="movie in billboardFilms"
-                            :key="movie.id"
-                            :movie="movie"
-                        />
-                    </div>
-                    <p v-else class="mt-6 text-slate-400">No hay películas en cartelera actualmente.</p>
-                </section>
+                <FilmsSection
+                    eyebrow="Próximamente"
+                    title="Próximos estrenos"
+                    :films="upcomingFilms"
+                    empty-message="No hay próximos estrenos disponibles por el momento."
+                    :show-date="true"
+                    :use-carousel="true"
+                />
 
-                <!-- Upcoming releases -->
-                <section class="mt-16">
-                    <p class="text-sm uppercase tracking-[0.4em] text-yellow-300">Próximamente</p>
-                    <h2 class="mt-2 text-3xl font-semibold text-white">Próximos estrenos</h2>
-
-                    <div v-if="upcomingFilms && upcomingFilms.length" class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-8 justify-items-center">
-                        <MovieCard
-                            v-for="movie in upcomingFilms"
-                            :key="movie.id"
-                            :movie="movie"
-                            :show-date="true"
-                        />
-                    </div>
-                    <p v-else class="mt-6 text-slate-400">No hay próximos estrenos disponibles por el momento.</p>
-                </section>
-
-                <!-- Discounts -->
+                <!-- Cambiar en un futuro -->
                 <section class="mt-16">
                     <p class="text-sm uppercase tracking-[0.4em] text-yellow-300">Ahorra más</p>
                     <h2 class="mt-2 text-3xl font-semibold text-white">Descuentos disponibles</h2>
