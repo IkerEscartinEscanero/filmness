@@ -1,37 +1,47 @@
 <script setup>
     import { Link, usePage } from '@inertiajs/vue3';
+    import { computed } from 'vue';
+
+    const emit = defineEmits(['close']);
 
     const page = usePage();
+    const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
+    const menuLinkClass = 'block whitespace-nowrap rounded-md px-3 py-2 text-left text-white transition-colors duration-300 hover:bg-slate-700 hover:text-yellow-500';
 
+    // The menu content changes depending on whether the user is authenticated or not, so I compute it based on the auth state and available routes
+    const menuItems = computed(() => {
+        if (isAuthenticated.value) {
+            return [
+                { label: 'Mi perfil', href: route('profile.edit') },
+                { label: 'Log out', href: route('logout'), method: 'post' },
+            ];
+        }
 
+        const items = [
+            { label: 'Log in', href: route('login') },
+        ];
+
+        if (page.props.canRegister) {
+            items.push({ label: 'Register', href: route('register') });
+        }
+
+        return items;
+    });
+
+    const closeMenu = () => emit('close');
 </script>
 
 <template>
-    <div class="flex flex-col space-y-2 p-4">
+    <div class="flex w-max min-w-0 flex-col space-y-1 p-2">
         <Link
-            v-if="$page.props.auth.user"
-            :href="route('logout')"
-            method="post"
-            class="block px-4 py-2 text-white hover:text-yellow-500 hover:bg-slate-700 rounded-md transition-colors duration-300"
+            v-for="item in menuItems"
+            :key="item.label"
+            :href="item.href"
+            :method="item.method"
+            :class="menuLinkClass"
+            @click="closeMenu"
         >
-            Log out
+            {{ item.label }}
         </Link>
-
-        <template v-else>
-            <Link
-                :href="route('login')"
-                class="block px-4 py-2 text-white hover:text-yellow-500 hover:bg-slate-700 rounded-md transition-colors duration-300"
-            >
-                Log in
-            </Link>
-
-            <Link
-                v-if="page.props.canRegister"
-                :href="route('register')"
-                class="block px-4 py-2 text-white hover:text-yellow-500 hover:bg-slate-700 rounded-md transition-colors duration-300"
-            >
-                Register
-            </Link>
-        </template>
     </div>
 </template>

@@ -49,6 +49,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('home', absolute: false));
+        return redirect(route('home', absolute: false))
+            ->with('auth_notice', 'Tu cuenta se ha creado correctamente. Bienvenido a FilmNess, '.$user->name.'.');
     }
 }

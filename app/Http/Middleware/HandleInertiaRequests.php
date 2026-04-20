@@ -35,6 +35,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'authNotice' => fn () => $request->session()->get('auth_notice'),
+            ],
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
         ];

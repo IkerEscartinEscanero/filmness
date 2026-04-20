@@ -33,7 +33,9 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()
+            ->intended(route('home', absolute: false))
+            ->with('auth_notice', 'Has iniciado sesion. Bienvenido de nuevo, '.$request->user()->name.'.');
     }
 
     /**

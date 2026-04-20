@@ -15,7 +15,7 @@
 
         <main class="min-h-screen bg-[#0F172A] text-white">
             <div class="mx-auto max-w-7xl px-6 py-10">
-                <!-- Reusable section for the public film blocks shown on Home. -->
+                <!-- Reusable section for the public film blocks shown on Home -->
                 <FilmsSection
                     eyebrow="En cine"
                     title="Cartelera"
