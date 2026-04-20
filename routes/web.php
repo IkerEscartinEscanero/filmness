@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FilmController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-// use Inertia\Inertia;
+use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -16,6 +16,7 @@ Route::get('/', [FilmController::class, 'index'])->name('home');
 Route::get('/cartelera', [FilmController::class, 'billboard'])->name('billboard');
 Route::get('/proximos-estrenos', [FilmController::class, 'upcoming'])->name('upcoming');
 Route::get('/movies/{film}', [FilmController::class, 'show'])->name('movies.show');
+Route::get('/sobre-nosotros', fn () => Inertia::render('About'))->name('about');
 
 // Rutas para gestión de películas (solo admins)
 Route::middleware('auth')->group(function () {

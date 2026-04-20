@@ -24,7 +24,7 @@
         { label: 'Inicio', href: route('home') },
         { label: 'Cartelera', href: route('billboard') },
         { label: 'Próximos estrenos', href: route('upcoming') },
-        { label: 'Sobre nosotros', href: null },
+        { label: 'Sobre nosotros', href: route('about') },
     ];
     const headerLinkClass = 'text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer';
     const iconButtonClass = 'btn btn-sm btn-ghost text-slate-300 hover:text-yellow-500 transition-colors duration-300';

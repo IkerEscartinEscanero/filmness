@@ -1,5 +1,22 @@
 <script setup>
+    import { Link } from '@inertiajs/vue3';
 
+    const navigationLinks = [
+        { label: 'Inicio', href: route('home') },
+        { label: 'Cartelera', href: route('billboard') },
+        { label: 'Próximos estrenos', href: route('upcoming') },
+        { label: 'Sobre nosotros', href: route('about') },
+    ];
+
+    const legalLinks = [
+        'Aviso legal',
+        'Condiciones de compra',
+        'Accesibilidad',
+        'Política de privacidad',
+        'Política de cookies',
+    ];
+
+    const footerLinkClass = 'hover:text-yellow-500 transition-colors duration-200 cursor-pointer';
 </script>
 
 <template>
@@ -8,10 +25,14 @@
             <!-- Navegation -->
             <div class="flex flex-col items-center md:items-start gap-2 text-sm">
                 <h6 class="text-yellow-500 font-semibold uppercase tracking-wider mb-2">Navegación</h6>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Inicio</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Cartelera</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Próximos estrenos</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Sobre nosotros</a>
+                <Link
+                    v-for="link in navigationLinks"
+                    :key="link.label"
+                    :href="link.href"
+                    :class="footerLinkClass"
+                >
+                    {{ link.label }}
+                </Link>
             </div>
 
             <!-- Logo and description -->
@@ -28,11 +49,13 @@
             <!-- Legal -->
             <div class="flex flex-col items-center md:items-end gap-2 text-sm">
                 <h6 class="text-yellow-500 font-semibold uppercase tracking-wider mb-2">Legal</h6>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Aviso legal</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Condiciones de compra</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Accesibilidad</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Política de privacidad</a>
-                <a class="hover:text-yellow-500 transition-colors duration-200 cursor-pointer">Política de cookies</a>
+                <span
+                    v-for="link in legalLinks"
+                    :key="link"
+                    class="text-slate-300"
+                >
+                    {{ link }}
+                </span>
             </div>
         </div>
 
