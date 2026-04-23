@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Film extends Model
-{
+class Film extends Model {
+    public function movieSessions() {
+        return $this->hasMany(MovieSession::class)->orderBy('date');
+    }
+
     protected $fillable = [
         'title',
         'logo',

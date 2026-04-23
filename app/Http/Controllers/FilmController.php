@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Film;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class FilmController extends Controller
-{
+class FilmController extends Controller {
     private const YOUTUBE_URL_REGEX = '/^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/)|youtu\.be\/)[A-Za-z0-9_-]{11}([&?].*)?$/';
 
     public function index() {
@@ -34,8 +34,26 @@ class FilmController extends Controller
     }
 
     public function show(Film $film) {
+        $sessions = $film->movieSessions()
+            ->where('date', '>=', now())
+            ->with('room')
+            ->orderBy('date')
+            ->get()
+            ->map(fn ($session) => [
+                'id' => $session->id,
+                'room_id' => $session->room_id,
+                'date' => $session->date->toISOString(),
+                'price' => (float) $session->price,
+                'room' => $session->room->name,
+            ]);
+
+        $rooms = Room::query()->orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('Movies/Show', [
             'film' => $film,
+            'sessions' => $sessions,
+            'rooms' => $rooms,
+            'canManageSessions' => Auth::user()?->role === 'admin',
         ]);
     }
 
@@ -160,8 +178,7 @@ class FilmController extends Controller
         return redirect()->route('home')->with('success', 'Película eliminada exitosamente.');
     }
 
-    private function youtubeTrailerRules(): array
-    {
+    private function youtubeTrailerRules(): array {
         return [
             'required',
             'string',
@@ -170,8 +187,7 @@ class FilmController extends Controller
         ];
     }
 
-    private function ensureAdmin(): void
-    {
+    private function ensureAdmin(): void {
         abort_unless(Auth::user()?->role === 'admin', 403);
     }
 }
