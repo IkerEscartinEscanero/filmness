@@ -13,16 +13,19 @@ const props = defineProps({
     cancelled: Boolean,
 });
 
+// The form keeps the buyer email and the selected seat IDs and seat IDs are sent again when the user goes back or submits the payment
 const form = useForm({
     email: props.contactEmail ?? '',
     seat_ids: props.selectedSeats.map((seat) => seat.id),
 });
 
+// Derived values used to render the summary without recalculating in the template
 const selectedSeatLabels = computed(() => props.selectedSeats.map((seat) => seat.label).join(', '));
 const selectedCount = computed(() => props.selectedSeats.length);
 const unitPrice = computed(() => Number(props.session.price).toFixed(2));
 const totalPrice = computed(() => Number(props.total).toFixed(2));
 
+// Format the session date for the checkout summary.
 function formatDateTime(iso) {
     const date = new Date(iso);
 
@@ -34,6 +37,7 @@ function formatDateTime(iso) {
     })} · ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
+// The server creates the pending purchase and then redirects the user to Stripe
 function submit() {
     form.post(route('checkout.store', { session: props.session.id }));
 }
@@ -59,6 +63,7 @@ function submit() {
                             </p>
                         </div>
 
+                        <!-- To go back and change seats -->
                         <Link
                             :href="route('sessions.seats', { session: session.id })"
                             :data="{ seat_ids: form.seat_ids }"
@@ -91,8 +96,9 @@ function submit() {
                         </div>
 
                         <form class="rounded-2xl bg-slate-900/60 border border-white/5 p-5" @submit.prevent="submit">
+                            <!-- The email is required because tickets and QR codes will be delivered there -->
                             <label class="block">
-                                <span class="text-xs uppercase tracking-[0.25em] text-slate-400">Correo para recibir las entradas</span>
+                                <span class="text-xs uppercase tracking-[0.25em] text-slate-400">Correo para recibir las entradas *</span>
                                 <input
                                     v-model="form.email"
                                     type="email"
@@ -125,13 +131,15 @@ function submit() {
                                     ? 'cursor-not-allowed opacity-60'
                                     : 'hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 cursor-pointer'"
                             >
-                                {{ form.processing ? 'Redirigiendo a Stripe...' : 'Pagar con Stripe' }}
+                                <!-- While processing, Inertia prevents duplicate submissions and we show feedback -->
+                                {{ form.processing ? 'Redirigiendo a Stripe...' : 'Pagar' }}
                             </button>
                         </form>
                     </div>
                 </section>
 
-                <aside class="bg-slate-800/70 border border-white/5 rounded-3xl p-6 h-fit lg:sticky lg:top-8">
+                <!-- Keeps the total visible while the user reviews the payment data -->
+                <aside class="bg-slate-800/70 border border-white/5 rounded-3xl p-6 h-fit lg:sticky lg:top-42">
                     <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Resumen</p>
                     <div class="mt-5 space-y-4 text-sm">
                         <div class="flex justify-between gap-4 text-slate-300">

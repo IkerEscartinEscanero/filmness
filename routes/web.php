@@ -23,6 +23,9 @@ Route::get('/sessions/{session}/checkout', [CheckoutController::class, 'create']
 Route::post('/sessions/{session}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
 Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+Route::post('/stripe/webhook', [CheckoutController::class, 'webhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('stripe.webhook');
 Route::get('/sobre-nosotros', fn () => Inertia::render('About'))->name('about');
 
 // Movie management routes (admins only)

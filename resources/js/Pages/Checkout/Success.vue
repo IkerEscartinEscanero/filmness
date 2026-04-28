@@ -16,6 +16,7 @@ defineProps({
             <div class="max-w-3xl mx-auto rounded-3xl border border-white/5 bg-slate-800/70 p-8 md:p-10 text-center">
                 <p class="text-xs uppercase tracking-[0.35em] text-emerald-400">Stripe</p>
                 <h1 class="mt-3 text-3xl font-bold">Hemos recibido el retorno del pago</h1>
+                <!-- The definitive payment state must come from the webhook on the server -->
                 <p class="mt-4 text-slate-300 leading-relaxed">
                     Tu compra ha vuelto correctamente desde Stripe. El siguiente paso será validar el pago de forma definitiva y, después, generar las entradas con QR para enviarlas al correo indicado.
                 </p>
@@ -29,6 +30,7 @@ defineProps({
                     </div>
 
                     <div class="rounded-2xl bg-slate-900/60 border border-white/5 p-5">
+                        <!-- Useful debugging data while the full payment flow is still being completed -->
                         <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Estado técnico</p>
                         <p class="mt-2 text-sm text-slate-300">Compra: {{ purchase.status }}</p>
                         <p class="mt-1 text-sm text-slate-300">Pasarela: {{ payment.gatewayStatus ?? 'sin datos' }}</p>
