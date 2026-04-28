@@ -7,6 +7,7 @@ const props = defineProps({
     session: Object, // { id, date, price, room }
     film: Object,
     seats: Array, // [{ id, row, number, occupied }]
+    initialSeatIds: { type: Array, default: () => [] },
 });
 
 // Helpers for formatting and display
@@ -19,8 +20,8 @@ const formatDateTime = (iso) => {
     }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 };
 
-// Seat selection state and logic
-const selectedSeatIds = ref(new Set());
+// Seat selection state and logic. If we come back from the checkout, restore the seats
+const selectedSeatIds = ref(new Set(props.initialSeatIds));
 
 function toggleSeat(seat) {
     if (seat.occupied) return;
@@ -69,6 +70,14 @@ const selectedSeats = computed(() =>
 
 function clearSelection() {
     selectedSeatIds.value = new Set();
+}
+
+function goToCheckout() {
+    if (selectedCount.value === 0) return;
+
+    router.get(route('checkout.create', { session: props.session.id }), {
+        seat_ids: Array.from(selectedSeatIds.value),
+    });
 }
 
 function goBack() {
@@ -185,6 +194,7 @@ function goBack() {
                                 Limpiar selección
                             </button>
                             <button
+                                @click="goToCheckout"
                                 class="cursor-pointer flex-[2] py-2.5 rounded-xl bg-yellow-500 text-slate-950 font-bold text-sm hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20"
                             >
                                 Continuar con la compra

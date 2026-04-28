@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\MovieSessionController;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,10 @@ Route::get('/cartelera', [FilmController::class, 'billboard'])->name('billboard'
 Route::get('/proximos-estrenos', [FilmController::class, 'upcoming'])->name('upcoming');
 Route::get('/movies/{film}', [FilmController::class, 'show'])->name('movies.show');
 Route::get('/sessions/{session}/seats', [MovieSessionController::class, 'seats'])->name('sessions.seats');
+Route::get('/sessions/{session}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
+Route::post('/sessions/{session}/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 Route::get('/sobre-nosotros', fn () => Inertia::render('About'))->name('about');
 
 // Movie management routes (admins only)

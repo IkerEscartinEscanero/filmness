@@ -84,7 +84,7 @@ class MovieSessionController extends Controller {
     /**
      * Shows the seat-selection view for a specific movie session
     */
-    public function seats(MovieSession $session) {
+    public function seats(MovieSession $session, Request $request) {
         $session->load(['film', 'room.seats']);
 
         $occupiedSeatIds = $session->tickets()->pluck('seat_id')->toArray();
@@ -96,6 +96,14 @@ class MovieSessionController extends Controller {
             'occupied' => in_array($seat->id, $occupiedSeatIds),
         ]);
 
+        // IDs of seats that come back from the checkout if the user clicked "Cambiar butacas"
+        $availableSeatIds = $seats->where('occupied', false)->pluck('id');
+        $initialSeatIds = collect($request->input('seat_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $availableSeatIds->contains($id))
+            ->values()
+            ->all();
+
         return Inertia::render('Movies/Seats', [
             'session' => [
                 'id' => $session->id,
@@ -105,6 +113,7 @@ class MovieSessionController extends Controller {
             ],
             'film' => $session->film,
             'seats' => $seats,
+            'initialSeatIds' => $initialSeatIds,
         ]);
     }
 
