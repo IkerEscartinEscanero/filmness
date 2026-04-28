@@ -104,7 +104,7 @@ class MovieSessionController extends Controller {
             ->values()
             ->all();
 
-        return Inertia::render('Movies/Seats', [
+        return Inertia::render('Films/Public/Seats', [
             'session' => [
                 'id' => $session->id,
                 'date' => $session->date->toISOString(),

@@ -49,7 +49,7 @@ class FilmController extends Controller {
 
         $rooms = Room::query()->orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('Movies/Show', [
+        return Inertia::render('Films/Public/Show', [
             'film' => $film,
             'sessions' => $sessions,
             'rooms' => $rooms,
@@ -84,7 +84,7 @@ class FilmController extends Controller {
     public function create() {
         $this->ensureAdmin();
 
-        return Inertia::render('Films/Create');
+        return Inertia::render('Films/Admin/Create');
     }
 
     public function store(Request $request) {
@@ -119,7 +119,7 @@ class FilmController extends Controller {
     public function edit(Film $film) {
         $this->ensureAdmin();
 
-        return Inertia::render('Films/Edit', [
+        return Inertia::render('Films/Admin/Edit', [
             'film' => $film,
         ]);
     }
