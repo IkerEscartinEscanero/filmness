@@ -8,8 +8,10 @@ use App\Models\Purchase;
 use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Mail\TicketConfirmationMail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 use Stripe\Checkout\Session as StripeCheckoutSession;
@@ -64,7 +66,7 @@ class CheckoutController extends Controller {
     }
 
     // Validate input, create local pending records and redirect to Stripe Checkout
-    public function store(Request $request, MovieSession $session): RedirectResponse {
+    public function store(Request $request, MovieSession $session): RedirectResponse|HttpResponse {
         $session->load(['film', 'room.seats', 'tickets']);
 
         $validated = $request->validate([
@@ -109,6 +111,7 @@ class CheckoutController extends Controller {
                 'success_url' => route('checkout.success', [
                     'purchase' => $purchase->id,
                     'session_id' => '{CHECKOUT_SESSION_ID}',
+                    'movie_session' => $session->id,
                 ]),
                 'cancel_url' => route('checkout.cancel', [
                     'session' => $session->id,
@@ -147,13 +150,41 @@ class CheckoutController extends Controller {
             'stripe_payment_intent_id' => is_string($checkoutSession->payment_intent) ? $checkoutSession->payment_intent : null,
         ]);
 
-        return redirect()->away($checkoutSession->url);
+        return Inertia::location($checkoutSession->url);
     }
 
     // -- Return page after Stripe redirects the user back to the app --
     // The real payment confirmation is done by webhook, this is just a landing page
     public function success(Request $request): Response {
-        $purchase = Purchase::query()->with('payment')->findOrFail($request->integer('purchase'));
+        $purchase = Purchase::query()->with(['payment', 'tickets.seat'])->findOrFail($request->integer('purchase'));
+
+        $movieSession = null;
+        $googleCalendarUrl = null;
+        $seats = [];
+
+        // Format seat labels from tickets, sorted by row then number
+        foreach ($purchase->tickets->sortBy(fn ($t) => [$t->seat->row, $t->seat->number]) as $ticket) {
+            $seats[] = $ticket->seat->row . $ticket->seat->number;
+        }
+
+        if ($request->filled('movie_session')) {
+            $movieSession = MovieSession::query()
+                ->with('film')
+                ->find($request->integer('movie_session'));
+
+            if ($movieSession) {
+                $start = $movieSession->date->utc()->format('Ymd\THis\Z');
+                $end = $movieSession->date->copy()->addHours(2)->utc()->format('Ymd\THis\Z');
+
+                $googleCalendarUrl = 'https://calendar.google.com/calendar/render?' . http_build_query([
+                    'action' => 'TEMPLATE',
+                    'text' => 'Cine: ' . $movieSession->film->title,
+                    'dates' => $start . '/' . $end,
+                    'details' => 'Entrada comprada en Filmness. Pedido #' . $purchase->id,
+                    'location' => 'Filmness Cinema',
+                ]);
+            }
+        }
 
         return Inertia::render('Checkout/Success', [
             'purchase' => [
@@ -166,6 +197,10 @@ class CheckoutController extends Controller {
                 'gatewayStatus' => $purchase->payment?->gateway_status,
                 'stripeSessionId' => $request->string('session_id')->toString(),
             ],
+            'seats' => $seats,
+            'film' => $movieSession ? ['title' => $movieSession->film->title] : null,
+            'session' => $movieSession ? ['date' => $movieSession->date->toISOString()] : null,
+            'googleCalendarUrl' => $googleCalendarUrl,
         ]);
     }
 
@@ -227,7 +262,7 @@ class CheckoutController extends Controller {
             return;
         }
 
-        $purchase = Purchase::query()->with('payment')->find($purchaseId);
+        $purchase = Purchase::query()->with(['payment', 'tickets.seat', 'tickets.movieSession.film', 'tickets.movieSession.room'])->find($purchaseId);
         if (! $purchase) {
             return;
         }
@@ -278,6 +313,14 @@ class CheckoutController extends Controller {
                 'stripe_payment_intent_id' => is_string($stripeSession->payment_intent) ? $stripeSession->payment_intent : null,
             ]);
         });
+
+        // Reload tickets with all relations needed for the confirmation email
+        $purchase->load(['tickets.seat', 'tickets.movieSession.film', 'tickets.movieSession.room']);
+
+        // Only send if the purchase ended up as paid
+        if ($purchase->status === 'pagado') {
+            Mail::to($purchase->contact_email)->send(new TicketConfirmationMail($purchase));
+        }
     }
 
     // Handle failed or expired Stripe checkout sessions
