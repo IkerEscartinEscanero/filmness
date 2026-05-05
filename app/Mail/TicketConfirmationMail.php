@@ -3,10 +3,6 @@
 namespace App\Mail;
 
 use App\Models\Purchase;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Writer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -27,17 +23,18 @@ class TicketConfirmationMail extends Mailable {
     }
 
     public function content(): Content {
-        $tickets = $this->purchase->tickets->map(function ($ticket) {
-            return [
-                'id' => $ticket->id,
-                'seat' => $ticket->seat->row . $ticket->seat->number,
-                'qr_svg' => $this->generateQrSvg($ticket->qr_code),
-                'qr_code' => $ticket->qr_code,
-            ];
-        });
-
         $session = $this->purchase->tickets->first()?->movieSession;
         $film    = $session?->film;
+
+        $seats = $this->purchase->tickets
+            ->sortBy(fn ($t) => [$t->seat->row, $t->seat->number])
+            ->map(fn ($t) => $t->seat->row . $t->seat->number)
+            ->values();
+
+        // Build a single QR encoding the purchase id and all ticket codes
+        $allCodes = $this->purchase->tickets->pluck('qr_code')->join('|');
+        $qrData = 'filmness:purchase=' . $this->purchase->id . '|tickets=' . $allCodes;
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' . urlencode($qrData);
 
         $googleCalendarUrl = $this->buildGoogleCalendarUrl($film, $session);
 
@@ -45,24 +42,13 @@ class TicketConfirmationMail extends Mailable {
             view: 'emails.ticket-confirmation',
             with: [
                 'purchase' => $this->purchase,
-                'tickets' => $tickets,
+                'seats' => $seats,
+                'qrUrl' => $qrUrl,
                 'film' => $film,
                 'session' => $session,
                 'googleCalendarUrl' => $googleCalendarUrl,
             ],
         );
-    }
-
-    // Generate an inline SVG string for the given QR code text
-    private function generateQrSvg(string $text): string {
-        $renderer = new ImageRenderer(
-            new RendererStyle(200),
-            new SvgImageBackEnd(),
-        );
-
-        $writer = new Writer($renderer);
-
-        return $writer->writeString($text);
     }
 
     // Build a prefilled Google Calendar "add event" URL
@@ -76,10 +62,9 @@ class TicketConfirmationMail extends Mailable {
         $end   = $session->date->copy()->addHours(2)->utc()->format('Ymd\THis\Z');
 
         return 'https://calendar.google.com/calendar/render?' . http_build_query([
-            'action'   => 'TEMPLATE',
-            'text'     => 'Cine: ' . $film->title,
-            'dates'    => $start . '/' . $end,
-            'details'  => 'Entrada comprada en Filmness. Pedido #' . $this->purchase->id,
+            'action' => 'TEMPLATE',
+            'text' => 'Cine: ' . $film->title,
+            'dates' => $start . '/' . $end,
             'location' => 'Filmness Cinema',
         ]);
     }

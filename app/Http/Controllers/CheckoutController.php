@@ -180,7 +180,6 @@ class CheckoutController extends Controller {
                     'action' => 'TEMPLATE',
                     'text' => 'Cine: ' . $movieSession->film->title,
                     'dates' => $start . '/' . $end,
-                    'details' => 'Entrada comprada en Filmness. Pedido #' . $purchase->id,
                     'location' => 'Filmness Cinema',
                 ]);
             }
