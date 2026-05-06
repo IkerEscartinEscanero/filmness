@@ -173,7 +173,7 @@
                 <h1>¡Tus entradas están listas!</h1>
                 <p>
                     Aquí tienes tu entrada para
-                    <strong style="color:#f1f5f9;">{{ $film?->title }}</strong>.
+                    <strong style="color:#f1f5f9;">{{ $film->title }}</strong>.
                     Muestra el código QR en taquilla.
                 </p>
             </div>
@@ -188,7 +188,7 @@
                     </tr>
                     <tr>
                         <td class="s-label">Película</td>
-                        <td class="s-value">{{ $film?->title }}</td>
+                        <td class="s-value">{{ $film->title }}</td>
                     </tr>
                     <tr>
                         <td class="s-label">Sesión</td>

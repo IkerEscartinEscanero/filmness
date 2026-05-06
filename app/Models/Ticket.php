@@ -14,4 +14,8 @@ class Ticket extends Model {
     public function seat() {
         return $this->belongsTo(Seat::class);
     }
+
+    public function purchase() {
+        return $this->belongsTo(Purchase::class);
+    }
 }

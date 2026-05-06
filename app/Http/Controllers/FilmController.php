@@ -34,6 +34,8 @@ class FilmController extends Controller {
     }
 
     public function show(Film $film) {
+        $isAdmin = Auth::user()?->role === 'admin';
+
         $sessions = $film->movieSessions()
             ->where('date', '>=', now())
             ->with('room')
@@ -53,7 +55,7 @@ class FilmController extends Controller {
             'film' => $film,
             'sessions' => $sessions,
             'rooms' => $rooms,
-            'canManageSessions' => Auth::user()?->role === 'admin',
+            'canManageSessions' => $isAdmin,
         ]);
     }
 
