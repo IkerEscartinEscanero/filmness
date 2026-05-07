@@ -5,15 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Film;
 use App\Models\MovieSession;
 use App\Models\Seat;
-use App\Models\Ticket;
+use App\Services\SeatsService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MovieSessionController extends Controller {
+    public function __construct(private SeatsService $seatsService) {
+
+    }
+
     public function store(Request $request, Film $film) {
         $this->ensureAdmin();
 
@@ -87,27 +90,11 @@ class MovieSessionController extends Controller {
     public function releaseSeat(MovieSession $session, Seat $seat) {
         $this->ensureAdmin();
 
-        if (!$this->seatBelongsToSessionRoom($session, $seat)) {
-            return back()->withErrors(['session' => 'La butaca seleccionada no pertenece a la sala de esta sesión.']);
+        $error = $this->seatsService->releaseSeat($session, $seat);
+
+        if ($error) {
+            return back()->withErrors(['session' => $error]);
         }
-
-        $ticket = $this->findTicketForSeatInSession($session, $seat);
-
-        if (! $ticket) {
-            return back()->withErrors(['session' => 'Esta butaca ya está libre.']);
-        }
-
-        DB::transaction(function () use ($ticket) {
-            $purchase = $ticket->purchase;
-
-            $ticket->delete();
-
-            if (!$purchase) {
-                return;
-            }
-
-            $this->cancelPurchaseIfWithoutTickets($purchase->id);
-        });
 
         return back()->with('success', 'Butaca liberada correctamente.');
     }
@@ -150,39 +137,6 @@ class MovieSessionController extends Controller {
 
     private function ensureAdmin(): void {
         abort_unless(Auth::user()?->role === 'admin', 403);
-    }
-
-    private function seatBelongsToSessionRoom(MovieSession $session, Seat $seat): bool {
-        return (int) $seat->room_id === (int) $session->room_id;
-    }
-
-    private function findTicketForSeatInSession(MovieSession $session, Seat $seat): ?Ticket {
-        return Ticket::query()
-            ->with('purchase.payment')
-            ->where('movie_session_id', $session->id)
-            ->where('seat_id', $seat->id)
-            ->first();
-    }
-
-    private function cancelPurchaseIfWithoutTickets(int $purchaseId): void {
-        $hasTickets = Ticket::query()
-            ->where('purchase_id', $purchaseId)
-            ->exists();
-
-        if ($hasTickets) {
-            return;
-        }
-
-        $purchase = \App\Models\Purchase::query()->with('payment')->find($purchaseId);
-        if (! $purchase) {
-            return;
-        }
-
-        $purchase->update(['status' => 'cancelado']);
-        $purchase->payment()?->update([
-            'status' => 'fallido',
-            'gateway_status' => 'liberado_por_admin',
-        ]);
     }
 
     /**
