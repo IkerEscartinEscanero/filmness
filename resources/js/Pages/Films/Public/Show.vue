@@ -15,6 +15,7 @@ const props = defineProps({
     rooms: Array,
     canManageSessions: Boolean,
     reviews: Array,
+    averageStars: Number,
     userHasValidatedTicket: Boolean,
     userReviewId: Number,
 });
@@ -184,6 +185,7 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                 :poster-url="posterUrl"
                 :logo-url="logoUrl"
                 :is-admin="isAdmin"
+                :average-stars="averageStars ?? null"
                 @edit="router.visit(`/films/${film.id}/edit`)"
             />
 

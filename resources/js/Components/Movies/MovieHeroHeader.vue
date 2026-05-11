@@ -1,17 +1,20 @@
 <script setup>
-import { ref } from 'vue';
+
 
 const props = defineProps({
     film: { type: Object, required: true },
     posterUrl: { type: String, default: null },
     logoUrl: { type: String, default: null },
     isAdmin: { type: Boolean, default: false },
+    averageStars: { type: Number, default: null },
 });
 
 const emit = defineEmits(['edit']);
 
-const userRating = ref(0);
-const hoverRating = ref(0);
+const starsLabel = (avg) => {
+    const rounded = Math.round(avg);
+    return '★'.repeat(rounded) + '☆'.repeat(Math.max(0, 5 - rounded));
+};
 
 const formatDate = (date) => {
     if (!date) return '—';
@@ -46,16 +49,11 @@ const formatDate = (date) => {
                     <span v-if="film.release_date">{{ formatDate(film.release_date) }}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-2">
-                    <button
-                        v-for="star in 5"
-                        :key="star"
-                        @mouseenter="hoverRating = star"
-                        @mouseleave="hoverRating = 0"
-                        @click="userRating = star"
-                        class="text-xl transition-transform hover:scale-110"
-                        :class="star <= (hoverRating || userRating) ? 'text-yellow-400' : 'text-slate-600'"
-                    >★</button>
-                    <span class="text-slate-400 text-xs ml-1">{{ userRating > 0 ? `${userRating}/5` : '0/5' }}</span>
+                    <template v-if="averageStars !== null">
+                        <span class="text-yellow-400 text-lg tracking-wider">{{ starsLabel(averageStars) }}</span>
+                        <span class="text-slate-300 text-xs">{{ averageStars.toFixed(1) }} / 5</span>
+                    </template>
+                    <span v-else class="text-slate-500 text-xs italic">No hay valoración disponible</span>
                 </div>
             </div>
 

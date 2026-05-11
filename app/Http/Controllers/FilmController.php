@@ -59,8 +59,13 @@ class FilmController extends Controller {
             ->where('film_id', $film->id)
             ->with('user:id,name,avatar_path')
             ->orderByDesc('date')
-            ->get()
-            ->map(fn (Review $review) => [
+            ->get();
+
+        $averageStars = $reviews->count() > 0
+            ? round($reviews->avg('stars'), 1)
+            : null;
+
+        $reviews = $reviews->map(fn (Review $review) => [
                 'id' => $review->id,
                 'userName' => $review->user?->name,
                 'userAvatar' => $review->user?->avatar_path ? "/storage/{$review->user->avatar_path}" : null,
@@ -96,6 +101,7 @@ class FilmController extends Controller {
             'rooms' => $rooms,
             'canManageSessions' => $isAdmin,
             'reviews' => $reviews,
+            'averageStars' => $averageStars,
             'userHasValidatedTicket' => $userHasValidatedTicket,
             'userReviewId' => $userReviewId,
         ]);

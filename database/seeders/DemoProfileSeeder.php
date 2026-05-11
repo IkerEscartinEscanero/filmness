@@ -95,6 +95,46 @@ class DemoProfileSeeder extends Seeder {
             ]
         );
 
+        // Usuario 2: 5 estrellas
+        $user2 = User::firstOrCreate(
+            ['email' => 'test2@filmness.com'],
+            [
+                'name' => 'Reviewer Dos',
+                'password' => Hash::make('123456789'),
+                'birth_date' => '1995-03-15',
+                'role' => 'user',
+            ]
+        );
+
+        Review::query()->updateOrCreate(
+            ['user_id' => $user2->id, 'film_id' => $film->id],
+            [
+                'comment' => 'Una obra maestra, no me esperaba ese final.',
+                'stars' => 5,
+                'date' => now()->subDays(5)->toDateString(),
+            ]
+        );
+
+        // Usuario 3: 2 estrellas
+        $user3 = User::firstOrCreate(
+            ['email' => 'test3@filmness.com'],
+            [
+                'name' => 'Reviewer Tres',
+                'password' => Hash::make('123456789'),
+                'birth_date' => '1990-11-22',
+                'role' => 'user',
+            ]
+        );
+
+        Review::query()->updateOrCreate(
+            ['user_id' => $user3->id, 'film_id' => $film->id],
+            [
+                'comment' => 'No me convenció, el ritmo era demasiado lento.',
+                'stars' => 2,
+                'date' => now()->subDays(3)->toDateString(),
+            ]
+        );
+
         Discount::query()->where('user_id', $user->id)->delete();
 
         Discount::query()->create([
