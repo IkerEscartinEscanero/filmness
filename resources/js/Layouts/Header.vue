@@ -42,7 +42,6 @@
     ];
     const headerLinkClass = 'text-slate-300 hover:text-yellow-500 transition-colors duration-300 font-medium cursor-pointer';
     const iconButtonClass = 'btn btn-sm btn-ghost text-slate-300 hover:text-yellow-500 transition-colors duration-300';
-    const cartButtonClass = 'btn btn-circle bg-yellow-500 text-slate-900 hover:bg-yellow-400 transition-all duration-300 shadow-md';
     const profileButtonClass = 'btn btn-circle btn-outline border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-slate-900 transition-all duration-300 overflow-visible';
     const profileDropdownClass = 'absolute right-0 mt-2 bg-slate-800 border border-yellow-500/20 rounded-lg shadow-xl backdrop-blur-md z-50';
     const desktopAvatarClass = 'pointer-events-none absolute left-1/2 top-1/2 h-[2.85rem] w-[2.85rem] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain';
@@ -174,14 +173,11 @@
                     </Transition>
                 </div>
 
-                <!-- Cart -->
-                <button :class="cartButtonClass">🛒</button>
             </div>
 
             <!-- MOBILE -->
             <div class="flex md:hidden items-center gap-3">
                 <button :class="iconButtonClass">🌙</button>
-                <button :class="`${cartButtonClass} text-sm`">🛒</button>
 
                 <!-- Login and register -->
                 <div ref="mobileProfileMenuRef" class="relative">
