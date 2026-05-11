@@ -1,11 +1,12 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import DeleteReviewModal from '@/Components/DeleteReviewModal.vue';
 import Modal from '@/Components/Modal.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Layout from '@/Layouts/Layout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, useForm, router, Link } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 const props = defineProps({
     status: {
@@ -31,9 +32,11 @@ const props = defineProps({
 });
 
 const showEditModal = ref(false);
+const showDeleteReviewModal = ref(false);
 const confirmProfileChanges = ref(false);
 const localAvatarPreview = ref(null);
 const dismissProfileUpdate = ref(false);
+const reviewIdToDelete = ref(null);
 let profileUpdateTimeout = null;
 
 const profileForm = useForm({
@@ -53,6 +56,8 @@ const resolveMediaPath = (path) => {
     if (path.startsWith('storage/')) return `/${path}`;
     return `/storage/${path}`;
 };
+
+const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 - stars));
 
 const profileAvatarUrl = computed(() => resolveMediaPath(props.profile.avatar_url));
 const modalAvatarPreview = computed(() => localAvatarPreview.value || profileAvatarUrl.value);
@@ -74,20 +79,31 @@ const openEditModal = () => {
     confirmProfileChanges.value = false;
 };
 
+const clearLocalAvatarPreview = () => {
+    if (!localAvatarPreview.value) return;
+    URL.revokeObjectURL(localAvatarPreview.value);
+    localAvatarPreview.value = null;
+};
+
+const resetSensitiveProfileFields = () => {
+    profileForm.reset('current_password', 'password', 'password_confirmation', 'avatar');
+};
+
 const closeEditModal = () => {
     showEditModal.value = false;
     confirmProfileChanges.value = false;
     profileForm.clearErrors();
-    profileForm.reset('current_password', 'password', 'password_confirmation', 'avatar');
-    localAvatarPreview.value = null;
+    resetSensitiveProfileFields();
+    clearLocalAvatarPreview();
 };
 
 const onAvatarChange = (event) => {
     const file = event.target.files?.[0] ?? null;
     profileForm.avatar = file;
 
+    clearLocalAvatarPreview();
+
     if (!file) {
-        localAvatarPreview.value = null;
         return;
     }
 
@@ -104,13 +120,30 @@ const saveProfile = () => {
         forceFormData: true,
         onSuccess: () => {
             closeEditModal();
-            localAvatarPreview.value = null;
-            profileForm.reset('current_password', 'password', 'password_confirmation', 'avatar');
         },
     });
 };
 
-const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 - stars));
+const requestDeleteReview = (reviewId) => {
+    reviewIdToDelete.value = reviewId;
+    showDeleteReviewModal.value = true;
+};
+
+const closeDeleteReviewModal = () => {
+    showDeleteReviewModal.value = false;
+    reviewIdToDelete.value = null;
+};
+
+const confirmDeleteReview = () => {
+    if (!reviewIdToDelete.value) return;
+
+    router.delete(route('reviews.destroy', reviewIdToDelete.value), {
+        preserveScroll: true,
+        onFinish: () => {
+            closeDeleteReviewModal();
+        },
+    });
+};
 
 watch(() => props.status, (value) => {
     dismissProfileUpdate.value = false;
@@ -122,6 +155,13 @@ watch(() => props.status, (value) => {
             dismissProfileUpdate.value = true;
         }, 5500);
     }
+});
+
+onBeforeUnmount(() => {
+    if (profileUpdateTimeout) {
+        clearTimeout(profileUpdateTimeout);
+    }
+    clearLocalAvatarPreview();
 });
 </script>
 
@@ -201,9 +241,26 @@ watch(() => props.status, (value) => {
                         <div v-if="watchedFilms.length" class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                         <article v-for="film in watchedFilms" :key="film.id" class="overflow-hidden rounded-2xl border border-white/10 bg-slate-800/70">
                             <img v-if="film.poster" :src="resolveMediaPath(film.poster)" :alt="film.title" class="h-65 w-full object-cover" />
+                            <div v-else class="flex h-44 items-center justify-center bg-slate-700 text-4xl">🎬</div>
                             <div class="p-3">
                                 <p class="line-clamp-2 text-sm font-semibold">{{ film.title }}</p>
                                 <p class="mt-1 text-xs text-slate-400">Vista en: {{ film.watchedAt }}</p>
+                                <div class="mt-3">
+                                    <button
+                                        v-if="film.reviewId"
+                                        @click="requestDeleteReview(film.reviewId)"
+                                        class="w-full px-2 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition text-xs font-semibold"
+                                    >
+                                        Borrar reseña
+                                    </button>
+                                    <Link
+                                        v-else
+                                        :href="`/movies/${film.id}`"
+                                        class="block w-full px-2 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 transition text-xs font-semibold text-center"
+                                    >
+                                        Reseñar película
+                                    </Link>
+                                </div>
                             </div>
                         </article>
                         </div>
@@ -385,5 +442,11 @@ watch(() => props.status, (value) => {
                 </form>
             </div>
         </Modal>
+
+        <DeleteReviewModal
+            :show="showDeleteReviewModal"
+            @cancel="closeDeleteReviewModal"
+            @confirm="confirmDeleteReview"
+        />
     </Layout>
 </template>

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Film;
 use App\Models\Room;
+use App\Models\Review;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -35,6 +37,7 @@ class FilmController extends Controller {
 
     public function show(Film $film) {
         $isAdmin = Auth::user()?->role === 'admin';
+        $user = Auth::user();
 
         $sessions = $film->movieSessions()
             ->where('date', '>=', now())
@@ -51,11 +54,50 @@ class FilmController extends Controller {
 
         $rooms = Room::query()->orderBy('name')->get(['id', 'name']);
 
+        // Load reviews for this film
+        $reviews = Review::query()
+            ->where('film_id', $film->id)
+            ->with('user:id,name,avatar_path')
+            ->orderByDesc('date')
+            ->get()
+            ->map(fn (Review $review) => [
+                'id' => $review->id,
+                'userName' => $review->user?->name,
+                'userAvatar' => $review->user?->avatar_path ? "/storage/{$review->user->avatar_path}" : null,
+                'stars' => (int) $review->stars,
+                'comment' => $review->comment,
+                 'date' => $review->date ? $review->date->format('d/m/Y') : $review->created_at->format('d/m/Y'),
+            ]);
+
+        // Check if current user has validated ticket for this film
+        $userHasValidatedTicket = false;
+        $userReviewId = null;
+
+        if ($user) {
+            $userHasValidatedTicket = Ticket::query()
+                ->where('validated', true)
+                ->whereHas('purchase', fn ($query) => $query
+                    ->where('user_id', $user->id)
+                    ->where('status', 'pagado'))
+                ->whereHas('movieSession', fn ($query) => $query
+                    ->where('film_id', $film->id)
+                    ->where('date', '<', now()))
+                ->exists();
+
+            $userReviewId = Review::query()
+                ->where('user_id', $user->id)
+                ->where('film_id', $film->id)
+                ->value('id');
+        }
+
         return Inertia::render('Films/Public/Show', [
             'film' => $film,
             'sessions' => $sessions,
             'rooms' => $rooms,
             'canManageSessions' => $isAdmin,
+            'reviews' => $reviews,
+            'userHasValidatedTicket' => $userHasValidatedTicket,
+            'userReviewId' => $userReviewId,
         ]);
     }
 

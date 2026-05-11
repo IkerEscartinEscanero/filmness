@@ -1,17 +1,22 @@
 <script setup>
 import Layout from '@/Layouts/Layout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
 import { getTrailerSource } from '@/utils/trailer';
 import MovieHeroHeader from '@/Components/Movies/MovieHeroHeader.vue';
 import MovieSessionAdminForm from '@/Components/Movies/MovieSessionAdminForm.vue';
+import DeleteReviewModal from '@/Components/DeleteReviewModal.vue';
+import CreateReviewModal from '@/Components/CreateReviewModal.vue';
+import UserFramedAvatar from '@/Components/UserFramedAvatar.vue';
 
 const props = defineProps({
     film: Object,
     sessions: Array,
     rooms: Array,
     canManageSessions: Boolean,
+    reviews: Array,
+    userHasValidatedTicket: Boolean,
+    userReviewId: Number,
 });
 
 const page = usePage();
@@ -35,6 +40,9 @@ const resolveMediaPath = (path) => {
 const posterUrl = computed(() => resolveMediaPath(props.film?.poster));
 const trailerSource = computed(() => getTrailerSource(props.film?.trailer_url));
 const logoUrl = computed(() => resolveMediaPath(props.film?.logo));
+const currentUserReview = computed(() =>
+    (props.reviews ?? []).find((review) => review.id === props.userReviewId) ?? null
+);
 
 const formatDate = (date) => {
     if (!date) return '—';
@@ -93,6 +101,14 @@ const formatTime = (iso) =>
 const selectedDay = ref(availableDays.value[0] ?? null);
 const selectedSession = ref(null);
 
+const showReviewModal = ref(false);
+const showDeleteReviewModal = ref(false);
+const reviewIdToDelete = ref(null);
+const reviewForm = useForm({
+    stars: 0,
+    comment: '',
+});
+
 const sessionsForDay = computed(() =>
     selectedDay.value ? (sessionsByDay.value[selectedDay.value] ?? []) : []
 );
@@ -114,6 +130,48 @@ function goToSeats() {
 function deleteSession(sessionId) {
     router.delete(`/sessions/${sessionId}`, { preserveScroll: true });
 }
+
+function openReviewModal() {
+    showReviewModal.value = true;
+    reviewForm.reset();
+}
+
+function closeReviewModal() {
+    showReviewModal.value = false;
+    reviewForm.reset();
+}
+
+function submitReview() {
+    reviewForm.post(route('films.reviews.store', props.film.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            closeReviewModal();
+        },
+    });
+}
+
+function requestDeleteReview(reviewId) {
+    reviewIdToDelete.value = reviewId;
+    showDeleteReviewModal.value = true;
+}
+
+function closeDeleteReviewModal() {
+    showDeleteReviewModal.value = false;
+    reviewIdToDelete.value = null;
+}
+
+function confirmDeleteReview() {
+    if (!reviewIdToDelete.value) return;
+
+    router.delete(route('reviews.destroy', reviewIdToDelete.value), {
+        preserveScroll: true,
+        onFinish: () => {
+            closeDeleteReviewModal();
+        },
+    });
+}
+
+const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 - stars));
 </script>
 
 <template>
@@ -188,52 +246,51 @@ function deleteSession(sessionId) {
                             <div class="rounded-xl border border-white/5 bg-slate-900/40 p-3">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Elige día</p>
                                 <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                <button
-                                    v-for="day in availableDays"
-                                    :key="day"
-                                    @click="selectDay(day)"
-                                    class="cursor-pointer rounded-xl border px-3 py-3 text-left transition"
-                                    :class="selectedDay === day
-                                        ? 'bg-yellow-500/15 border-yellow-500 text-yellow-300'
-                                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500'"
-                                >
-                                    <p class="text-xs uppercase tracking-widest opacity-80">{{ formatDayTab(day) }}</p>
-                                    <p class="text-sm font-semibold mt-1">{{ formatDayDetail(day) }}</p>
-                                </button>
-                            </div>
+                                    <button
+                                        v-for="day in availableDays"
+                                        :key="day"
+                                        @click="selectDay(day)"
+                                        class="cursor-pointer rounded-xl border px-3 py-3 text-left transition"
+                                        :class="selectedDay === day
+                                            ? 'bg-yellow-500/15 border-yellow-500 text-yellow-300'
+                                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500'"
+                                    >
+                                        <p class="text-xs uppercase tracking-widest opacity-80">{{ formatDayTab(day) }}</p>
+                                        <p class="text-sm font-semibold mt-1">{{ formatDayDetail(day) }}</p>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="rounded-xl border border-white/5 bg-slate-900/40 p-3">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Elige hora</p>
                                 <div class="mt-3 flex flex-wrap gap-2">
-                                <div
-                                    v-for="session in sessionsForDay"
-                                    :key="session.id"
-                                    class="flex items-center gap-1"
-                                >
-                                    <button
-                                        @click="selectSession(session)"
-                                        class="cursor-pointer px-4 py-2.5 rounded-xl text-sm font-semibold transition border min-w-[120px]"
-                                        :class="selectedSession?.id === session.id
-                                            ? 'bg-yellow-500 text-slate-950 border-yellow-500 shadow-md shadow-yellow-500/20'
-                                            : 'bg-slate-800 text-slate-100 border-slate-600 hover:border-yellow-500/60 hover:text-yellow-400'"
+                                    <div
+                                        v-for="session in sessionsForDay"
+                                        :key="session.id"
+                                        class="flex items-center gap-1"
                                     >
-                                        <span class="text-base">{{ formatTime(session.date) }}</span>
-                                        <span class="block text-[11px] font-normal opacity-70 mt-0.5">{{ session.room }}</span>
-                                    </button>
+                                        <button
+                                            @click="selectSession(session)"
+                                            class="cursor-pointer px-4 py-2.5 rounded-xl text-sm font-semibold transition border min-w-[120px]"
+                                            :class="selectedSession?.id === session.id
+                                                ? 'bg-yellow-500 text-slate-950 border-yellow-500 shadow-md shadow-yellow-500/20'
+                                                : 'bg-slate-800 text-slate-100 border-slate-600 hover:border-yellow-500/60 hover:text-yellow-400'"
+                                        >
+                                            <span class="text-base">{{ formatTime(session.date) }}</span>
+                                            <span class="block text-[11px] font-normal opacity-70 mt-0.5">{{ session.room }}</span>
+                                        </button>
 
-                                    <button
-                                        v-if="canManageSessions"
-                                        @click="deleteSession(session.id)"
-                                        class="h-9 w-9 rounded-lg border border-red-500/40 text-red-400 hover:bg-red-500/20 transition"
-                                        title="Eliminar horario"
-                                    >
-                                        X
-                                    </button>
+                                        <button
+                                            v-if="canManageSessions"
+                                            @click="deleteSession(session.id)"
+                                            class="h-9 w-9 rounded-lg border border-red-500/40 text-red-400 hover:bg-red-500/20 transition"
+                                            title="Eliminar horario"
+                                        >
+                                            X
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            </div>
-
                         </div>
                     </div>
 
@@ -277,13 +334,88 @@ function deleteSession(sessionId) {
                             <span class="w-1 h-5 bg-yellow-500 rounded-full"></span>
                             Reseñas
                         </h2>
-                        <!-- Reviews placeholder -->
-                        <div class="flex flex-col gap-4">
-                            <p class="text-slate-500 text-sm italic">Aún no hay reseñas en esta película.</p>
+
+                        <button
+                            v-if="userHasValidatedTicket && !userReviewId"
+                            @click="openReviewModal"
+                            class="mb-4 w-full py-2 rounded-xl bg-yellow-500 text-slate-950 font-semibold hover:bg-yellow-400 transition"
+                        >
+                            Dejar reseña
+                        </button>
+
+                        <div v-if="currentUserReview" class="mb-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
+                            <div class="mb-3 flex items-start justify-between gap-3">
+                                <div class="flex gap-3">
+                                    <UserFramedAvatar
+                                        :src="currentUserReview.userAvatar"
+                                        :alt="currentUserReview.userName"
+                                        size-class="h-11 w-11"
+                                        inner-inset-class="inset-[0.38rem]"
+                                    />
+                                    <div>
+                                        <p class="text-sm font-semibold text-yellow-300">{{ currentUserReview.userName || 'Tu reseña' }}</p>
+                                        <p class="text-xs text-slate-400">{{ currentUserReview.date }}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    @click="requestDeleteReview(userReviewId)"
+                                    class="text-xs px-2 py-1 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                <p class="text-sm text-yellow-300">{{ starsLabel(currentUserReview.stars) }}</p>
+                                <p class="text-sm text-slate-300">{{ currentUserReview.comment || 'Sin comentario' }}</p>
+                            </div>
                         </div>
+
+                        <div v-if="reviews.length" class="flex flex-col gap-3">
+                            <article
+                                v-for="review in reviews"
+                                :key="review.id"
+                                v-show="review.id !== userReviewId"
+                                class="rounded-xl bg-slate-800/60 border border-white/5 p-4"
+                            >
+                                <div class="flex gap-3 mb-3">
+                                    <UserFramedAvatar
+                                        :src="review.userAvatar"
+                                        :alt="review.userName"
+                                        size-class="h-11 w-11"
+                                        inner-inset-class="inset-[0.38rem]"
+                                    />
+                                    <div>
+                                        <p class="font-semibold text-white text-sm">{{ review.userName }}</p>
+                                        <p class="text-xs text-slate-400">{{ review.date }}</p>
+                                    </div>
+                                </div>
+                                <p class="text-yellow-300 text-sm mb-2">{{ starsLabel(review.stars) }}</p>
+                                <p class="text-slate-300 text-sm">{{ review.comment || 'Sin comentario' }}</p>
+                            </article>
+                        </div>
+
+                        <p v-else class="text-slate-500 text-sm italic">Aún no hay reseñas en esta película.</p>
                     </div>
                 </div>
             </div>
         </main>
+
+        <CreateReviewModal
+            :show="showReviewModal"
+            :stars="reviewForm.stars"
+            :comment="reviewForm.comment"
+            :processing="reviewForm.processing"
+            :errors="reviewForm.errors"
+            @close="closeReviewModal"
+            @submit="submitReview"
+            @update:stars="reviewForm.stars = $event"
+            @update:comment="reviewForm.comment = $event"
+        />
+
+        <DeleteReviewModal
+            :show="showDeleteReviewModal"
+            @cancel="closeDeleteReviewModal"
+            @confirm="confirmDeleteReview"
+        />
     </Layout>
 </template>

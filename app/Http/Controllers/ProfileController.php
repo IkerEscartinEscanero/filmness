@@ -39,7 +39,7 @@ class ProfileController extends Controller
 
         $watchedFilms = (clone $watchedTicketsQuery)
             ->get()
-            ->map(function (Ticket $ticket) {
+            ->map(function (Ticket $ticket) use ($user) {
                 $film = $ticket->movieSession?->film;
                 $sessionDate = $ticket->movieSession?->date;
 
@@ -47,12 +47,18 @@ class ProfileController extends Controller
                     return null;
                 }
 
+                $userReview = Review::query()
+                    ->where('user_id', $user->id)
+                    ->where('film_id', $film->id)
+                    ->first();
+
                 return [
                     'id' => $film->id,
                     'title' => $film->title,
                     'poster' => $film->poster,
                     'logo' => $film->logo,
                     'watchedAt' => $sessionDate->format('d/m/Y H:i'),
+                    'reviewId' => $userReview?->id,
                 ];
             })
             ->filter()
