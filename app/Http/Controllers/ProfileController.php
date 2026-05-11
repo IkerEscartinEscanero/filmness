@@ -8,6 +8,7 @@ use App\Models\Purchase;
 use App\Models\Review;
 use App\Models\Ticket;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\DiscountService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,8 +24,10 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): Response {
+    public function edit(Request $request, DiscountService $discountService): Response {
         $user = $request->user();
+
+        $discountService->ensureBirthdayDiscount($user);
 
         $watchedTicketsQuery = Ticket::query()
             ->where('validated', true)
@@ -99,6 +102,55 @@ class ProfileController extends Controller
             ->orderBy('date')
             ->first();
 
+        $userDiscounts = Discount::query()
+            ->where('user_id', $user->id)
+            ->get();
+
+        $discountReasons = [
+            Discount::REASON_WELCOME,
+            Discount::REASON_BIRTHDAY,
+            Discount::REASON_LARGE_PURCHASE,
+        ];
+
+        $discounts = collect($discountReasons)
+            ->map(function (string $reason) use ($userDiscounts, $discountService) {
+                $discountsByReason = $userDiscounts->where('reason', $reason)->values();
+                $isLargePurchase = $reason === Discount::REASON_LARGE_PURCHASE;
+
+                $availableDiscount = $discountsByReason
+                    ->first(fn (Discount $discount) => $discount->active
+                        && (! $discount->expiration_date || $discount->expiration_date->isFuture() || $discount->expiration_date->isToday()));
+
+                $hasUsedOrExpired = $discountsByReason
+                    ->contains(fn (Discount $discount) => ! $discount->active
+                        || ($discount->expiration_date && $discount->expiration_date->isPast()));
+
+                // If there is currently an available discount of this type, show it as not used.
+                $used = $isLargePurchase
+                    ? false
+                    : (! $availableDiscount && $hasUsedOrExpired);
+
+                $referenceDiscount = $availableDiscount
+                    ?? $discountsByReason->sortByDesc('created_at')->first();
+
+                $value = $referenceDiscount
+                    ? ($referenceDiscount->type === 'porcentaje'
+                        ? rtrim(rtrim((string) $referenceDiscount->value, '0'), '.').'%'
+                        : number_format((float) $referenceDiscount->value, 2).' EUR')
+                    : '10%';
+
+                return [
+                    'key' => $reason,
+                    'reason' => $reason,
+                    'label' => $discountService->labelFor($reason),
+                    'value' => $value,
+                    'available' => $isLargePurchase ? true : (bool) $availableDiscount,
+                    'used' => $used,
+                    'expiration_date' => optional($availableDiscount?->expiration_date)->format('d/m/Y'),
+                ];
+            })
+            ->values();
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
@@ -121,20 +173,7 @@ class ProfileController extends Controller
                     'date' => $nextSession->date->format('d/m/Y H:i'),
                 ]
                 : null,
-            'discounts' => Discount::query()
-                ->where('user_id', $user->id)
-                ->orderByDesc('active')
-                ->orderBy('expiration_date')
-                ->get()
-                ->map(fn (Discount $discount) => [
-                    'id' => $discount->id,
-                    'label' => $discount->type === 'porcentaje' ? 'Descuento porcentual' : 'Descuento fijo',
-                    'value' => $discount->type === 'porcentaje'
-                        ? rtrim(rtrim((string) $discount->value, '0'), '.').'%'
-                        : number_format((float) $discount->value, 2).' EUR',
-                    'active' => $discount->active,
-                    'expiration_date' => optional($discount->expiration_date)->format('d/m/Y'),
-                ]),
+            'discounts' => $discounts,
         ]);
     }
 
@@ -149,7 +188,6 @@ class ProfileController extends Controller
         $user->fill([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'birth_date' => $validated['birth_date'] ?? null,
         ]);
 
         if ($user->isDirty('email')) {

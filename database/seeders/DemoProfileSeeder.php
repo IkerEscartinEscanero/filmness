@@ -99,18 +99,27 @@ class DemoProfileSeeder extends Seeder {
 
         Discount::query()->create([
             'user_id' => $user->id,
+            'reason' => Discount::REASON_WELCOME,
             'type' => 'porcentaje',
             'value' => 10,
             'active' => true,
-            'expiration_date' => now()->addMonths(2)->toDateString(),
         ]);
 
         Discount::query()->create([
             'user_id' => $user->id,
+            'reason' => Discount::REASON_BIRTHDAY,
             'type' => 'porcentaje',
             'value' => 10,
-            'active' => false,
-            'expiration_date' => now()->subDays(2)->toDateString(),
+            'active' => true,
+            'expiration_date' => now()->toDateString(),
+        ]);
+
+        Discount::query()->create([
+            'user_id' => $user->id,
+            'reason' => Discount::REASON_LARGE_PURCHASE,
+            'type' => 'porcentaje',
+            'value' => 10,
+            'active' => true,
         ]);
     }
 }

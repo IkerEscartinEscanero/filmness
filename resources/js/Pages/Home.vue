@@ -38,13 +38,12 @@
                 <section class="mt-16">
                     <p class="text-sm uppercase tracking-[0.4em] text-yellow-300">Ahorra más</p>
                     <h2 class="mt-2 text-3xl font-semibold text-white">Descuentos disponibles</h2>
-                    <p class="mt-2 text-slate-400 max-w-2xl">Consigue tu entrada a mejor precio aprovechando nuestros descuentos exclusivos.</p>
 
                     <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
 
                         <!-- Register discount -->
                         <div class="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-800/60 p-7 hover:border-yellow-500/40 transition">
-                            <div class="w-12 h-12 rounded-full bg-yellow-500/15 flex items-center justify-center text-2xl">🎟️</div>
+                            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl"><img src="/images/ticket.png" class="w-7 h-7 object-contain"/></div>
                             <h3 class="text-lg font-semibold text-white">Regístrate y ahorra</h3>
                             <p class="text-slate-400 text-sm leading-relaxed">
                                 Crea tu cuenta en Filmness y obtén un descuento de bienvenida en tu primera compra. ¡Solo por unirte a nuestra comunidad!
@@ -54,20 +53,20 @@
 
                         <!-- Birthday discount -->
                         <div class="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-800/60 p-7 hover:border-yellow-500/40 transition">
-                            <div class="w-12 h-12 rounded-full bg-yellow-500/15 flex items-center justify-center text-2xl">🎂</div>
+                            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl"><img src="/images/tarta.png" class="w-7 h-7 object-contain"/></div>
                             <h3 class="text-lg font-semibold text-white">Cumpleaños de cine</h3>
                             <p class="text-slate-400 text-sm leading-relaxed">
-                                ¡Celebra tu día de la mejor manera! Durante tu mes de cumpleaños disfrutarás de un descuento especial en todas tus entradas.
+                                Si hoy es tu cumpleaños y tienes la fecha informada en tu perfil, Filmness te activa automáticamente un descuento especial para celebrarlo en el cine.
                             </p>
                             <span class="mt-auto inline-block rounded-full bg-yellow-500/10 border border-yellow-500/30 px-4 py-1 text-xs font-semibold text-yellow-300 w-fit">Descuento del 10% por cumpleaños</span>
                         </div>
 
                         <!-- Volume discount -->
                         <div class="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-800/60 p-7 hover:border-yellow-500/40 transition">
-                            <div class="w-12 h-12 rounded-full bg-yellow-500/15 flex items-center justify-center text-2xl">💳</div>
-                            <h3 class="text-lg font-semibold text-white">Gran compra, gran descuento</h3>
+                            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl"><img src="/images/tarjeta.png" class="w-7 h-7 object-contain"/></div>
+                            <h3 class="text-lg font-semibold text-white">Premiamos las compras grandes</h3>
                             <p class="text-slate-400 text-sm leading-relaxed">
-                                ¿Vienes en grupo? Si el total de tu compra supera los <span class="text-yellow-300 font-semibold">50 €</span> se aplica automáticamente un descuento por volumen.
+                                Si completas una compra superior a <span class="text-yellow-300 font-semibold">50 €</span>, recibirás un nuevo descuento del 10% para usarlo en una futura compra.
                             </p>
                             <span class="mt-auto inline-block rounded-full bg-yellow-500/10 border border-yellow-500/30 px-4 py-1 text-xs font-semibold text-yellow-300 w-fit">Descuento del 10% por +50€</span>
                         </div>

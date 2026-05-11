@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Discount;
 use App\Models\MovieSession;
 use App\Models\Payment;
 use App\Models\Purchase;
 use App\Models\Ticket;
+use App\Services\DiscountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Mail\TicketConfirmationMail;
@@ -23,6 +25,8 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class CheckoutController extends Controller {
+    public function __construct(private readonly DiscountService $discountService) {}
+
     // Build the checkout summary page from selected seats and session info
     public function create(Request $request, MovieSession $session): Response|RedirectResponse {
         $session->load(['film', 'room.seats', 'tickets']);
@@ -46,6 +50,30 @@ class CheckoutController extends Controller {
                 'label' => $seat->row.$seat->number,
             ]);
 
+        $subtotal = (float) bcmul((string) $session->price, (string) count($selectedSeats), 2);
+        $selectedDiscountIds = collect($request->input('discount_ids', []))
+            ->map(fn ($discountId) => (int) $discountId)
+            ->filter()
+            ->values()
+            ->all();
+
+        if (count($selectedDiscountIds) === 0 && $request->filled('discount_id')) {
+            $selectedDiscountIds = [(int) $request->integer('discount_id')];
+        }
+        $availableDiscounts = $this->discountService
+            ->availableDiscountsForUser(Auth::user())
+            ->map(function (Discount $discount) use ($subtotal) {
+                return [
+                    'id' => $discount->id,
+                    'label' => $this->discountService->labelFor($discount->reason),
+                    'value' => $discount->type === 'porcentaje'
+                        ? rtrim(rtrim((string) $discount->value, '0'), '.').'%' : number_format((float) $discount->value, 2).' EUR',
+                    'amount' => $this->discountService->calculateAmount($discount, $subtotal),
+                    'expiration_date' => $discount->expiration_date?->format('d/m/Y'),
+                ];
+            })
+            ->values();
+
         return Inertia::render('Checkout/Create', [
             'session' => [
                 'id' => $session->id,
@@ -58,7 +86,10 @@ class CheckoutController extends Controller {
                 'title' => $session->film->title,
             ],
             'selectedSeats' => $selectedSeats,
-            'total' => (float) bcmul((string) $session->price, (string) count($selectedSeats), 2),
+            'subtotal' => $subtotal,
+            'total' => $subtotal,
+            'selectedDiscountIds' => $selectedDiscountIds,
+            'availableDiscounts' => $availableDiscounts,
             'contactEmail' => Auth::user()?->email,
             'stripeKeyConfigured' => filled(config('services.stripe.key')) && filled(config('services.stripe.secret')),
             'cancelled' => $request->boolean('cancelled'),
@@ -73,6 +104,8 @@ class CheckoutController extends Controller {
             'email' => ['required', 'email:rfc'],
             'seat_ids' => ['required', 'array', 'min:1'],
             'seat_ids.*' => ['integer'],
+            'discount_ids' => ['nullable', 'array'],
+            'discount_ids.*' => ['integer'],
         ]);
 
         $seatIds = $this->validatedSeatIds($request, $session);
@@ -84,7 +117,14 @@ class CheckoutController extends Controller {
             return back()->withErrors(['payment' => 'Stripe no esta configurado todavia en el entorno.'])->withInput();
         }
 
-        $total = (float) bcmul((string) $session->price, (string) count($seatIds), 2);
+        $subtotal = (float) bcmul((string) $session->price, (string) count($seatIds), 2);
+        $discounts = $this->discountService->resolveCheckoutDiscounts(
+            Auth::user(),
+            $request->input('discount_ids', []),
+            $subtotal
+        );
+        $discountAmount = $this->discountService->calculateTotalDiscountAmount($discounts, $subtotal);
+        $total = max(0, round($subtotal - $discountAmount, 2));
 
         // Persist a pending purchase before contacting Stripe, to have a local record to correlate with the Stripe session and update later in the webhook.
         $purchase = Purchase::create([
@@ -117,6 +157,7 @@ class CheckoutController extends Controller {
                     'session' => $session->id,
                     'seat_ids' => $seatIds,
                     'cancelled' => 1,
+                    'discount_ids' => $discounts->pluck('id')->all(),
                 ]),
                 // Stripe sends metadata back in webhook events
                 'metadata' => [
@@ -124,15 +165,17 @@ class CheckoutController extends Controller {
                     'movie_session_id' => (string) $session->id,
                     'seat_ids' => implode(',', $seatIds),
                     'contact_email' => $validated['email'],
+                    'discount_ids' => $discounts->pluck('id')->implode(','),
+                    'subtotal' => (string) $subtotal,
                 ],
                 'line_items' => [[
-                    'quantity' => count($seatIds),
+                    'quantity' => 1,
                     'price_data' => [
                         'currency' => 'eur',
-                        'unit_amount' => (int) round(((float) $session->price) * 100),
+                        'unit_amount' => (int) round($total * 100),
                         'product_data' => [
                             'name' => 'Entradas para '.$session->film->title,
-                            'description' => 'Sala '.$session->room->name.' · '.$session->date->format('d/m/Y H:i'),
+                            'description' => count($seatIds).' entrada(s) · Sala '.$session->room->name.' · '.$session->date->format('d/m/Y H:i'),
                         ],
                     ],
                 ]],
@@ -208,6 +251,7 @@ class CheckoutController extends Controller {
             'session' => $session->id,
             'seat_ids' => $request->input('seat_ids', []),
             'cancelled' => 1,
+            'discount_ids' => $request->input('discount_ids', []),
         ]);
     }
 
@@ -261,7 +305,7 @@ class CheckoutController extends Controller {
             return;
         }
 
-        $purchase = Purchase::query()->with(['payment', 'tickets.seat', 'tickets.movieSession.film', 'tickets.movieSession.room'])->find($purchaseId);
+        $purchase = Purchase::query()->with(['payment', 'user', 'tickets.seat', 'tickets.movieSession.film', 'tickets.movieSession.room'])->find($purchaseId);
         if (! $purchase) {
             return;
         }
@@ -272,7 +316,14 @@ class CheckoutController extends Controller {
         }
 
         // Seat checks, ticket creation, and status updates must be atomic to avoid race conditions
-        DB::transaction(function () use ($purchase, $movieSessionId, $seatIds, $stripeSession): void {
+        $discountIds = collect(explode(',', (string) ($stripeSession->metadata->discount_ids ?? '')))
+            ->map(fn ($discountId) => (int) $discountId)
+            ->filter()
+            ->unique()
+            ->values();
+        $subtotal = round((float) ($stripeSession->metadata->subtotal ?? 0), 2);
+
+        DB::transaction(function () use ($purchase, $movieSessionId, $seatIds, $stripeSession, $discountIds): void {
             $conflictingSeats = Ticket::query()
                 ->where('movie_session_id', $movieSessionId)
                 ->whereIn('seat_id', $seatIds)
@@ -311,6 +362,17 @@ class CheckoutController extends Controller {
                 'stripe_checkout_session_id' => $stripeSession->id,
                 'stripe_payment_intent_id' => is_string($stripeSession->payment_intent) ? $stripeSession->payment_intent : null,
             ]);
+
+            if ($discountIds->isNotEmpty() && $purchase->user) {
+                $discounts = Discount::query()
+                    ->whereIn('id', $discountIds)
+                    ->where('user_id', $purchase->user->id)
+                    ->get();
+
+                foreach ($discounts as $discount) {
+                    $this->discountService->consume($discount);
+                }
+            }
         });
 
         // Reload tickets with all relations needed for the confirmation email
@@ -318,6 +380,10 @@ class CheckoutController extends Controller {
 
         // Only send if the purchase ended up as paid
         if ($purchase->status === 'pagado') {
+            if ($purchase->user && $subtotal > 50) {
+                $this->discountService->grantLargePurchaseDiscount($purchase->user);
+            }
+
             Mail::to($purchase->contact_email)->send(new TicketConfirmationMail($purchase));
         }
     }

@@ -42,7 +42,6 @@ let profileUpdateTimeout = null;
 const profileForm = useForm({
     name: props.profile.name ?? '',
     email: props.profile.email ?? '',
-    birth_date: props.profile.birth_date ?? '',
     avatar: null,
     current_password: '',
     password: '',
@@ -307,30 +306,39 @@ onBeforeUnmount(() => {
                     <div class="relative">
                         <h2 class="text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis descuentos</h2>
 
-                        <div v-if="discounts.length" class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                         <article
                             v-for="discount in discounts"
-                            :key="discount.id"
+                            :key="discount.key"
                             class="rounded-2xl border px-4 py-3"
-                            :class="discount.active
+                            :class="discount.available
                                 ? 'border-emerald-400/30 bg-emerald-500/10'
                                 : 'border-slate-600/80 bg-slate-800/50 opacity-70'"
                         >
-                            <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-start justify-between gap-3">
                                 <p class="font-medium">{{ discount.label }}</p>
-                                <span class="rounded-full px-2 py-1 text-xs font-semibold"
-                                      :class="discount.active ? 'bg-emerald-400/15 text-emerald-200' : 'bg-slate-700 text-slate-300'">
-                                    {{ discount.active ? 'Disponible' : 'Bloqueado/Gastado' }}
+                            </div>
+
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
+                                <span
+                                    class="rounded-full px-2 py-1 text-xs font-semibold"
+                                    :class="discount.available ? 'bg-emerald-400/15 text-emerald-200' : 'bg-slate-700 text-slate-300'"
+                                >
+                                    {{ discount.available ? 'Disponible' : 'No disponible' }}
+                                </span>
+                                <span
+                                    v-if="discount.reason !== 'large_purchase'"
+                                    class="rounded-full px-2 py-1 text-xs font-semibold"
+                                    :class="discount.used ? 'bg-amber-400/15 text-amber-200' : 'bg-sky-400/15 text-sky-200'"
+                                >
+                                    {{ discount.used ? 'Usado o caducado' : 'Sin usar' }}
                                 </span>
                             </div>
+
                             <p class="mt-2 text-sm text-yellow-300">{{ discount.value }}</p>
                             <p v-if="discount.expiration_date" class="mt-1 text-xs text-slate-400">Caduca: {{ discount.expiration_date }}</p>
                         </article>
                         </div>
-
-                        <p v-else class="mt-5 rounded-2xl border border-dashed border-white/20 bg-slate-800/40 p-4 text-sm text-slate-400">
-                            No hay descuentos configurados para este usuario.
-                        </p>
                     </div>
                 </section>
             </div>
@@ -338,7 +346,7 @@ onBeforeUnmount(() => {
 
         <Modal :show="showEditModal" max-width="2xl" @close="closeEditModal">
             <div class="bg-slate-900 p-6 text-white">
-                <h3 class="text-xl font-semibold text-yellow-300">Modificar perfil</h3>
+                <h3 class="text-xs uppercase tracking-[0.2em] text-yellow-300">Modificar perfil</h3>
                 <p class="mt-2 text-sm text-slate-400">Puedes cambiar datos personales, foto de perfil y contraseña.</p>
 
                 <form class="mt-6 space-y-4" @submit.prevent="requestSave">
@@ -354,10 +362,9 @@ onBeforeUnmount(() => {
                         <InputError class="mt-2" :message="profileForm.errors.email" />
                     </div>
 
-                    <div>
-                        <InputLabel for="edit_birth_date" value="Fecha de cumpleaños" class="text-slate-200" />
-                        <TextInput id="edit_birth_date" v-model="profileForm.birth_date" type="date" class="mt-1 block w-full bg-slate-800 border-slate-600 text-white" />
-                        <InputError class="mt-2" :message="profileForm.errors.birth_date" />
+                    <div class="rounded-2xl border border-white/10 bg-slate-800/50 px-4 py-3">
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Fecha de cumpleaños</p>
+                        <p class="mt-1 text-sm text-slate-200">No se puede modificar desde el perfil por motivos de seguridad.</p>
                     </div>
 
                     <div>

@@ -7,7 +7,10 @@ const props = defineProps({
     session: Object,
     film: Object,
     selectedSeats: Array,
+    subtotal: Number,
     total: Number,
+    selectedDiscountIds: Array,
+    availableDiscounts: Array,
     contactEmail: String,
     stripeKeyConfigured: Boolean,
     cancelled: Boolean,
@@ -17,13 +20,26 @@ const props = defineProps({
 const form = useForm({
     email: props.contactEmail ?? '',
     seat_ids: props.selectedSeats.map((seat) => seat.id),
+    discount_ids: Array.isArray(props.selectedDiscountIds) ? [...props.selectedDiscountIds] : [],
 });
 
 // Derived values used to render the summary without recalculating in the template
 const selectedSeatLabels = computed(() => props.selectedSeats.map((seat) => seat.label).join(', '));
 const selectedCount = computed(() => props.selectedSeats.length);
 const unitPrice = computed(() => Number(props.session.price).toFixed(2));
-const totalPrice = computed(() => Number(props.total).toFixed(2));
+const selectedDiscounts = computed(() => {
+    const selectedIds = new Set(form.discount_ids.map((discountId) => Number(discountId)));
+
+    return props.availableDiscounts.filter((discount) => selectedIds.has(Number(discount.id)));
+});
+const subtotalPrice = computed(() => Number(props.subtotal).toFixed(2));
+const discountAmount = computed(() => {
+    const amount = selectedDiscounts.value
+        .reduce((sum, discount) => sum + Number(discount.amount ?? 0), 0);
+
+    return Math.min(Number(props.subtotal), amount).toFixed(2);
+});
+const totalPrice = computed(() => Math.max(0, Number(props.subtotal) - Number(discountAmount.value)).toFixed(2));
 
 // Format the session date for the checkout summary.
 function formatDateTime(iso) {
@@ -96,6 +112,25 @@ function submit() {
                         </div>
 
                         <form class="rounded-2xl bg-slate-900/60 border border-white/5 p-5" @submit.prevent="submit">
+                            <div v-if="availableDiscounts.length" class="mb-5 rounded-2xl border border-white/5 bg-slate-950/60 p-4">
+                                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Descuentos a aplicar</p>
+                                <p class="mt-2 text-xs text-slate-500">Puedes marcar uno, varios o ninguno.</p>
+                                <div class="mt-3 space-y-3">
+                                    <label
+                                        v-for="discount in availableDiscounts"
+                                        :key="discount.id"
+                                        class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-700 px-4 py-3 text-sm text-slate-300 hover:border-yellow-500/40"
+                                    >
+                                        <input v-model="form.discount_ids" :value="discount.id" type="checkbox" class="mt-1">
+                                        <span>
+                                            <strong class="block text-white">{{ discount.label }}</strong>
+                                            <span class="block text-yellow-300">{{ discount.value }} · ahorro de {{ Number(discount.amount).toFixed(2) }} €</span>
+                                            <span v-if="discount.expiration_date" class="text-slate-400">Caduca: {{ discount.expiration_date }}</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <!-- The email is required because tickets and QR codes will be delivered there -->
                             <label class="block">
                                 <span class="text-xs uppercase tracking-[0.25em] text-slate-400">Correo para recibir las entradas *</span>
@@ -145,6 +180,24 @@ function submit() {
                         <div class="flex justify-between gap-4 text-slate-300">
                             <span>{{ selectedCount }} entrada<span v-if="selectedCount !== 1">s</span></span>
                             <span>{{ unitPrice }} €</span>
+                        </div>
+                        <div class="flex justify-between gap-4 text-slate-300">
+                            <span>Subtotal</span>
+                            <span>{{ subtotalPrice }} €</span>
+                        </div>
+                        <div v-if="selectedDiscounts.length" class="text-emerald-300 space-y-2">
+                            <div
+                                v-for="discount in selectedDiscounts"
+                                :key="discount.id"
+                                class="flex justify-between gap-4"
+                            >
+                                <span>{{ discount.label }}</span>
+                                <span>-{{ Number(discount.amount).toFixed(2) }} €</span>
+                            </div>
+                            <div class="flex justify-between gap-4 border-t border-white/10 pt-2 font-semibold">
+                                <span>Total descuentos</span>
+                                <span>-{{ discountAmount }} €</span>
+                            </div>
                         </div>
                         <div class="h-px bg-white/10"></div>
                         <div class="flex justify-between gap-4 text-white text-lg font-semibold">
