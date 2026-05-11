@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             RoomSeeder::class,
             MovieSessionSeeder::class,
+            DemoProfileSeeder::class,
         ]);
     }
 }

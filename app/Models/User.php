@@ -22,7 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'birth_date',
-        'role'
+        'role',
+        'avatar_path',
     ];
 
     /**
@@ -35,6 +36,22 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'birth_date' => 'date',
         ];
+    }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function discounts()
+    {
+        return $this->hasMany(Discount::class);
     }
 }

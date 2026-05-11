@@ -9,6 +9,10 @@ class Film extends Model {
         return $this->hasMany(MovieSession::class)->orderBy('date');
     }
 
+    public function reviews() {
+        return $this->hasMany(Review::class);
+    }
+
     protected $fillable = [
         'title',
         'logo',

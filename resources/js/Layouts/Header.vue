@@ -17,7 +17,21 @@
     // These computed values keep the template clean and react to auth changes automatically
     const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
     const authNotice = computed(() => page.props.flash?.authNotice ?? null);
-    const displayAvatar = computed(() => isAuthenticated.value ? authenticatedAvatar : guestAvatar);
+    const resolveAvatarPath = (path) => {
+        if (!path) return authenticatedAvatar;
+        if (path.startsWith('http://') || path.startsWith('https://')) return path;
+        if (path.startsWith('/')) return path;
+        if (path.startsWith('storage/')) return `/${path}`;
+        return `/storage/${path}`;
+    };
+
+    const displayAvatar = computed(() => {
+        if (!isAuthenticated.value) {
+            return guestAvatar;
+        }
+
+        return resolveAvatarPath(page.props.auth?.user?.avatar_path);
+    });
 
     // Reusing the same navigation data avoids repeating links for desktop and mobile
     const navLinks = [
