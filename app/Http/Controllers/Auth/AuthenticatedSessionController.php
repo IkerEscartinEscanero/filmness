@@ -16,8 +16,14 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        // If the user comes from a page within the site, we save the URL so that after login they return to where they were
+        $reference = $request->headers->get('referer');
+        if ($reference && str_starts_with($reference, config('app.url'))) {
+            session()->put('url.intended', $reference);
+        }
+
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
@@ -33,9 +39,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Si es admin, siempre al panel, sin importar de dónde venía.
+        if ($request->user()->role === 'admin') {
+            return redirect()
+                ->route('admin.dashboard')
+                ->with('auth_notice', 'Bienvenido al panel administrativo, '.$request->user()->name.'.');
+        }
+
         return redirect()
             ->intended(route('home', absolute: false))
-            ->with('auth_notice', 'Has iniciado sesion. Bienvenido de nuevo, '.$request->user()->name.'.');
+            ->with('auth_notice', 'Has iniciado sesión. Bienvenido de nuevo, '.$request->user()->name.'.');
     }
 
     /**
