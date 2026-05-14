@@ -65,6 +65,15 @@ const submit = () => {
         });
     }
 };
+
+const cancelAndGoBack = () => {
+    if (window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
+    router.visit('/admin/dashboard');
+};
 </script>
 
 <template>
@@ -237,7 +246,7 @@ const submit = () => {
             <div class="flex justify-end space-x-4">
                 <button
                     type="button"
-                    @click="router.visit('/')"
+                    @click="cancelAndGoBack"
                     class="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500"
                 >
                     Cancelar

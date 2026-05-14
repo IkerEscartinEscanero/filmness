@@ -6,23 +6,30 @@
 
     const page = usePage();
     const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
+    const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
     const menuLinkClass = 'block whitespace-nowrap rounded-md px-3 py-2 text-left text-white transition-colors duration-300 hover:bg-slate-700 hover:text-yellow-500';
 
-    // The menu content changes depending on whether the user is authenticated or not, so I compute it based on the auth state and available routes
+    // El menú cambia según si hay sesión iniciada o no.
     const menuItems = computed(() => {
         if (isAuthenticated.value) {
-            return [
-                { label: 'Mi perfil', href: route('profile.edit') },
-                { label: 'Log out', href: route('logout'), method: 'post' },
-            ];
+            const items = [];
+            
+            if (isAdmin.value) {
+                items.push({ label: 'Panel administrativo', href: route('admin.dashboard') });
+            }
+            
+            items.push({ label: 'Mi perfil', href: route('profile.edit') });
+            items.push({ label: 'Cerrar sesión', href: route('logout'), method: 'post' });
+            
+            return items;
         }
 
         const items = [
-            { label: 'Log in', href: route('login') },
+            { label: 'Iniciar sesión', href: route('login') },
         ];
 
         if (page.props.canRegister) {
-            items.push({ label: 'Register', href: route('register') });
+            items.push({ label: 'Registrarse', href: route('register') });
         }
 
         return items;

@@ -5,6 +5,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\MovieSessionController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -46,6 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/films/{film}/sessions', [MovieSessionController::class, 'store'])->name('films.sessions.store');
     Route::delete('/sessions/{session}', [MovieSessionController::class, 'destroy'])->name('sessions.destroy');
     Route::delete('/sessions/{session}/seats/{seat}/release', [MovieSessionController::class, 'releaseSeat'])->name('sessions.seats.release');
+});
+
+// Admin dashboard routes
+Route::middleware('auth')->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 });
 
 require __DIR__.'/auth.php';

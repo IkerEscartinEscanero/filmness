@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Film;
-use App\Models\Room;
 use App\Models\Review;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -36,7 +35,6 @@ class FilmController extends Controller {
     }
 
     public function show(Film $film) {
-        $isAdmin = Auth::user()?->role === 'admin';
         $user = Auth::user();
 
         $sessions = $film->movieSessions()
@@ -51,8 +49,6 @@ class FilmController extends Controller {
                 'price' => (float) $session->price,
                 'room' => $session->room->name,
             ]);
-
-        $rooms = Room::query()->orderBy('name')->get(['id', 'name']);
 
         // Load reviews for this film
         $reviews = Review::query()
@@ -98,8 +94,6 @@ class FilmController extends Controller {
         return Inertia::render('Films/Public/Show', [
             'film' => $film,
             'sessions' => $sessions,
-            'rooms' => $rooms,
-            'canManageSessions' => $isAdmin,
             'reviews' => $reviews,
             'averageStars' => $averageStars,
             'userHasValidatedTicket' => $userHasValidatedTicket,
@@ -163,7 +157,7 @@ class FilmController extends Controller {
 
         Film::create($validated);
 
-        return redirect()->route('home')->with('success', 'Película creada exitosamente.');
+        return redirect()->route('admin.dashboard')->with('success', 'Película creada exitosamente.');
     }
 
     public function edit(Film $film) {
@@ -209,7 +203,7 @@ class FilmController extends Controller {
 
         $film->update($validated);
 
-        return redirect()->route('home')->with('success', 'Película actualizada exitosamente.');
+        return redirect()->route('admin.dashboard')->with('success', 'Película actualizada exitosamente.');
     }
 
     public function destroy(Film $film) {
@@ -225,7 +219,7 @@ class FilmController extends Controller {
 
         $film->delete();
 
-        return redirect()->route('home')->with('success', 'Película eliminada exitosamente.');
+        return redirect()->route('admin.dashboard')->with('success', 'Película eliminada exitosamente.');
     }
 
     private function youtubeTrailerRules(): array {

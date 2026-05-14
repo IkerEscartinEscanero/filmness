@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <div class="mt-6 flex justify-end">
-                                    <button type="button" class="rounded-full bg-yellow-500 px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-yellow-400" @click="openEditModal">
+                                    <button type="button" class="cursor-pointer rounded-full bg-yellow-500 px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-yellow-400" @click="openEditModal">
                                         Modificar perfil
                                     </button>
                                 </div>
@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
                                     <button
                                         v-if="film.reviewId"
                                         @click="requestDeleteReview(film.reviewId)"
-                                        class="w-full px-2 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition text-xs font-semibold"
+                                        class="w-full px-2 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 transition text-xs font-semibold cursor-pointer"
                                     >
                                         Borrar reseña
                                     </button>
@@ -434,15 +434,15 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div class="mt-2 flex items-center justify-end gap-3">
-                        <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/5" @click="closeEditModal">
+                        <button type="button" class="cursor-pointer rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/5" @click="closeEditModal">
                             Cancelar
                         </button>
 
-                        <button v-if="!confirmProfileChanges" type="submit" class="rounded-full bg-yellow-500 px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-yellow-400">
+                        <button v-if="!confirmProfileChanges" type="submit" class="cursor-pointer rounded-full bg-yellow-500 px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-yellow-400">
                             Revisar cambios
                         </button>
 
-                        <button v-else type="button" class="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400" :disabled="profileForm.processing" @click="saveProfile">
+                        <button v-else type="button" class="cursor-pointer rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400" :disabled="profileForm.processing" @click="saveProfile">
                             Confirmar y guardar
                         </button>
                     </div>

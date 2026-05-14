@@ -75,6 +75,16 @@ function goToCheckout() {
 }
 
 function goBack() {
+    if (window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
+    if (isAdmin.value) {
+        router.visit('/admin/dashboard');
+        return;
+    }
+
     router.visit(`/movies/${props.film.id}`);
 }
 
@@ -116,10 +126,10 @@ function confirmReleaseSeat() {
                         <button
                             @click="goBack"
                             class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-600 bg-slate-800 hover:bg-slate-700 transition text-slate-200 hover:text-white text-sm font-medium"
-                            title="Volver a horarios"
-                            aria-label="Volver a horarios"
+                            title="Volver"
+                            aria-label="Volver"
                         >
-                            <span>🢀 Volver a horarios</span>
+                            <span>🢀 Volver</span>
                         </button>
                     </div>
 

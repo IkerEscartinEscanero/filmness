@@ -1,10 +1,9 @@
 <script setup>
 import Layout from '@/Layouts/Layout.vue';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { getTrailerSource } from '@/utils/trailer';
 import MovieHeroHeader from '@/Components/Movies/MovieHeroHeader.vue';
-import MovieSessionAdminForm from '@/Components/Movies/MovieSessionAdminForm.vue';
 import DeleteReviewModal from '@/Components/DeleteReviewModal.vue';
 import CreateReviewModal from '@/Components/CreateReviewModal.vue';
 import UserFramedAvatar from '@/Components/UserFramedAvatar.vue';
@@ -12,23 +11,11 @@ import UserFramedAvatar from '@/Components/UserFramedAvatar.vue';
 const props = defineProps({
     film: Object,
     sessions: Array,
-    rooms: Array,
-    canManageSessions: Boolean,
     reviews: Array,
     averageStars: Number,
     userHasValidatedTicket: Boolean,
     userReviewId: Number,
 });
-
-const page = usePage();
-const isAdmin = computed(() => page.props.auth?.user?.role === 'admin');
-const adminSessionError = computed(() =>
-    page.props.errors?.session
-    || page.props.errors?.room_id
-    || page.props.errors?.date
-    || page.props.errors?.price
-    || null
-);
 
 const resolveMediaPath = (path) => {
     if (!path) return null;
@@ -128,10 +115,6 @@ function goToSeats() {
     router.visit(`/sessions/${selectedSession.value.id}/seats`);
 }
 
-function deleteSession(sessionId) {
-    router.delete(`/sessions/${sessionId}`, { preserveScroll: true });
-}
-
 function openReviewModal() {
     showReviewModal.value = true;
     reviewForm.reset();
@@ -184,9 +167,7 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                 :film="film"
                 :poster-url="posterUrl"
                 :logo-url="logoUrl"
-                :is-admin="isAdmin"
                 :average-stars="averageStars ?? null"
-                @edit="router.visit(`/films/${film.id}/edit`)"
             />
 
             <!-- Body of the details -->
@@ -233,13 +214,6 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                             Horarios
                         </h2>
 
-                        <MovieSessionAdminForm
-                            v-if="canManageSessions"
-                            :film-id="film.id"
-                            :rooms="rooms"
-                            :error-message="adminSessionError"
-                        />
-
                         <div v-if="availableDays.length === 0" class="bg-slate-800/60 rounded-2xl border border-white/5 p-5 text-center">
                             <p class="text-slate-500 text-sm italic">No hay sesiones disponibles próximamente.</p>
                         </div>
@@ -280,15 +254,6 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                                         >
                                             <span class="text-base">{{ formatTime(session.date) }}</span>
                                             <span class="block text-[11px] font-normal opacity-70 mt-0.5">{{ session.room }}</span>
-                                        </button>
-
-                                        <button
-                                            v-if="canManageSessions"
-                                            @click="deleteSession(session.id)"
-                                            class="h-9 w-9 rounded-lg border border-red-500/40 text-red-400 hover:bg-red-500/20 transition"
-                                            title="Eliminar horario"
-                                        >
-                                            X
                                         </button>
                                     </div>
                                 </div>
