@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Film;
 use App\Models\Purchase;
+use App\Models\Room;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -112,6 +113,7 @@ class DashboardController extends Controller
             ],
             'topFilmsRevenue' => $topFilmsRevenue,
             'monthlyRevenueSeries' => $monthlyRevenueSeries,
+            'rooms' => Room::all(),
         ]);
     }
 }

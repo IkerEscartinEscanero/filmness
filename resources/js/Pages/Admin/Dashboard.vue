@@ -1,6 +1,7 @@
 <script setup>
 import Layout from '@/Layouts/Layout.vue';
 import DeleteFilmModal from '@/Components/DeleteFilmModal.vue';
+import MovieSessionAdminForm from '@/Components/Movies/MovieSessionAdminForm.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import VChart from 'vue-echarts';
@@ -17,6 +18,7 @@ const props = defineProps({
     kpis: Object,
     topFilmsRevenue: Array,
     monthlyRevenueSeries: Array,
+    rooms: Array,
 });
 
 const showSessionsModal = ref(false);
@@ -320,11 +322,7 @@ const donutChartOption = computed(() => ({
                                     </td>
                                     <td class="px-6 py-4 text-sm font-medium">
                                         <button
-                                            class="mr-4"
-                                            :class="film.movie_sessions.length > 0
-                                                ? 'text-blue-400 hover:text-blue-300'
-                                                : 'text-slate-500 cursor-not-allowed'"
-                                            :disabled="film.movie_sessions.length === 0"
+                                            class="mr-4 text-blue-400 hover:text-blue-300"
                                             @click="openSessionsModal(film)"
                                         >
                                             Sesiones
@@ -382,11 +380,7 @@ const donutChartOption = computed(() => ({
                                     </td>
                                     <td class="px-6 py-4 text-sm font-medium">
                                         <button
-                                            class="mr-4"
-                                            :class="film.movie_sessions.length > 0
-                                                ? 'text-blue-400 hover:text-blue-300'
-                                                : 'text-slate-500 cursor-not-allowed'"
-                                            :disabled="film.movie_sessions.length === 0"
+                                            class="mr-4 text-blue-400 hover:text-blue-300"
                                             @click="openSessionsModal(film)"
                                         >
                                             Sesiones
@@ -432,7 +426,10 @@ const donutChartOption = computed(() => ({
                 </div>
 
                 <div class="p-6">
-                    <div v-if="selectedFilm?.movie_sessions.length > 0" class="space-y-4">
+                    <MovieSessionAdminForm v-if="selectedFilm" :film-id="selectedFilm.id" :rooms="rooms" />
+                    
+                    <div v-if="selectedFilm?.movie_sessions.length > 0" class="space-y-4 mt-6">
+                        <h4 class="text-sm font-semibold text-slate-300 uppercase mb-4">Sesiones existentes</h4>
                         <div v-for="session in selectedFilm.movie_sessions" :key="session.id"
                             class="bg-slate-700/50 border border-slate-600 rounded p-4 flex justify-between items-center">
                             <div>
@@ -452,8 +449,8 @@ const donutChartOption = computed(() => ({
                             </div>
                         </div>
                     </div>
-                    <div v-else class="text-center py-8 text-slate-400">
-                        No hay sesiones para esta película
+                    <div v-else class="text-center py-8 text-slate-400 mt-6">
+                        Añade tu primera sesión para esta película
                     </div>
                 </div>
             </div>

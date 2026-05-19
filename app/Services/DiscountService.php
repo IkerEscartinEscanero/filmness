@@ -57,12 +57,27 @@ class DiscountService {
         ]);
     }
 
+    public function ensureLargePurchaseDiscount(User $user): Discount {
+        return Discount::query()->firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'reason' => Discount::REASON_LARGE_PURCHASE,
+            ],
+            [
+                'type' => 'porcentaje',
+                'value' => self::DEFAULT_PERCENTAGE,
+                'active' => true,
+            ]
+        );
+    }
+
     public function availableDiscountsForUser(?User $user): Collection {
         if (! $user) {
             return collect();
         }
 
         $this->ensureBirthdayDiscount($user);
+        $this->ensureLargePurchaseDiscount($user);
 
         return Discount::query()
             ->where('user_id', $user->id)
@@ -72,7 +87,7 @@ class DiscountService {
     }
 
     public function availableDiscountsForCheckout(?User $user, float $subtotal): Collection {
-        return $this->availableDiscountsForUser($user)
+        $discounts = $this->availableDiscountsForUser($user)
             ->filter(function (Discount $discount) use ($subtotal, $user) {
                 if ($discount->reason === Discount::REASON_BIRTHDAY) {
                     return $user?->birth_date && $user->birth_date->format('m-d') === now()->format('m-d');
@@ -85,6 +100,21 @@ class DiscountService {
                 return true;
             })
             ->values();
+
+        // Add synthetic large purchase discount for non-authenticated users if threshold is met
+        if (!$user && $subtotal >= self::LARGE_PURCHASE_THRESHOLD) {
+            $syntheticDiscount = new Discount([
+                'id' => -1,
+                'user_id' => null,
+                'reason' => Discount::REASON_LARGE_PURCHASE,
+                'type' => 'porcentaje',
+                'value' => self::DEFAULT_PERCENTAGE,
+                'active' => true,
+            ]);
+            $discounts->push($syntheticDiscount);
+        }
+
+        return $discounts;
     }
 
     public function resolveCheckoutDiscount(?User $user, ?int $discountId, float $subtotal): ?Discount {
@@ -109,7 +139,7 @@ class DiscountService {
     }
 
     public function resolveCheckoutDiscounts(?User $user, array $discountIds, float $subtotal): Collection {
-        if (! $user || count($discountIds) === 0) {
+        if (count($discountIds) === 0) {
             return collect();
         }
 
@@ -123,23 +153,48 @@ class DiscountService {
             return collect();
         }
 
-        return Discount::query()
-            ->where('user_id', $user->id)
-            ->whereIn('id', $ids)
-            ->available()
-            ->get()
-            ->filter(function (Discount $discount) use ($subtotal, $user) {
-                if ($discount->reason === Discount::REASON_BIRTHDAY) {
-                    return $user?->birth_date && $user->birth_date->format('m-d') === now()->format('m-d');
-                }
+        $resolved = collect();
 
-                if ($discount->reason === Discount::REASON_LARGE_PURCHASE && $subtotal < self::LARGE_PURCHASE_THRESHOLD) {
-                    return false;
-                }
+        // Handle synthetic large purchase discount for non-authenticated users
+        if (!$user && $ids->contains(-1) && $subtotal >= self::LARGE_PURCHASE_THRESHOLD) {
+            $syntheticDiscount = new Discount([
+                'id' => -1,
+                'user_id' => null,
+                'reason' => Discount::REASON_LARGE_PURCHASE,
+                'type' => 'porcentaje',
+                'value' => self::DEFAULT_PERCENTAGE,
+                'active' => true,
+            ]);
+            $resolved->push($syntheticDiscount);
+        }
 
-                return $this->calculateAmount($discount, $subtotal) > 0;
-            })
-            ->values();
+        // Remove synthetic ID before querying database
+        $ids = $ids->filter(fn ($id) => $id !== -1)->values();
+
+        // Handle authenticated user discounts
+        if ($user && $ids->isNotEmpty()) {
+            $userDiscounts = Discount::query()
+                ->where('user_id', $user->id)
+                ->whereIn('id', $ids)
+                ->available()
+                ->get()
+                ->filter(function (Discount $discount) use ($subtotal, $user) {
+                    if ($discount->reason === Discount::REASON_BIRTHDAY) {
+                        return $user?->birth_date && $user->birth_date->format('m-d') === now()->format('m-d');
+                    }
+
+                    if ($discount->reason === Discount::REASON_LARGE_PURCHASE && $subtotal < self::LARGE_PURCHASE_THRESHOLD) {
+                        return false;
+                    }
+
+                    return $this->calculateAmount($discount, $subtotal) > 0;
+                })
+                ->values();
+
+            $resolved = $resolved->merge($userDiscounts);
+        }
+
+        return $resolved;
     }
 
     public function calculateAmount(?Discount $discount, float $subtotal): float {
