@@ -22,20 +22,28 @@ const props = defineProps({
 });
 
 const showSessionsModal = ref(false);
-const selectedFilm = ref(null);
+const selectedFilmId = ref(null);
 const showDeleteFilmModal = ref(false);
 const filmIdToDelete = ref(null);
 const showDeleteSessionModal = ref(false);
 const sessionIdToDelete = ref(null);
 
+const selectedFilm = computed(() => {
+    if (!selectedFilmId.value) return null;
+
+    const films = [...(props.billboardFilms ?? []), ...(props.upcomingFilms ?? [])];
+
+    return films.find((film) => film.id === selectedFilmId.value) ?? null;
+});
+
 const openSessionsModal = (film) => {
-    selectedFilm.value = film;
+    selectedFilmId.value = film.id;
     showSessionsModal.value = true;
 };
 
 const closeSessionsModal = () => {
     showSessionsModal.value = false;
-    selectedFilm.value = null;
+    selectedFilmId.value = null;
 };
 
 const goToCreateFilm = () => {

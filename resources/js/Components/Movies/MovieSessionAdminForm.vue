@@ -1,14 +1,16 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onBeforeUnmount } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
     filmId: { type: Number, required: true },
     rooms: { type: Array, default: () => [] },
-    errorMessage: { type: String, default: null },
 });
 
 const localError = ref(null);
+const localSuccess = ref(null);
+let successTimeout = null;
+let errorTimeout = null;
 
 const sessionForm = ref({
     room_id: '',
@@ -17,7 +19,37 @@ const sessionForm = ref({
     price: '9.50',
 });
 
-const formError = computed(() => localError.value || props.errorMessage || null);
+const clearSuccessTimer = () => {
+    if (successTimeout) {
+        window.clearTimeout(successTimeout);
+        successTimeout = null;
+    }
+};
+
+const clearErrorTimer = () => {
+    if (errorTimeout) {
+        window.clearTimeout(errorTimeout);
+        errorTimeout = null;
+    }
+};
+
+const showTemporarySuccess = (message) => {
+    clearSuccessTimer();
+    localSuccess.value = message;
+    successTimeout = window.setTimeout(() => {
+        localSuccess.value = null;
+        successTimeout = null;
+    }, 3500);
+};
+
+const showTemporaryError = (message) => {
+    clearErrorTimer();
+    localError.value = message;
+    errorTimeout = window.setTimeout(() => {
+        localError.value = null;
+        errorTimeout = null;
+    }, 4500);
+};
 
 const formatDateInputValue = (date) => {
     const year = date.getFullYear();
@@ -48,7 +80,8 @@ function createSession() {
     if (!sessionForm.value.room_id || !sessionForm.value.date || !sessionForm.value.time) return;
 
     if (isSessionFormInPast.value) {
-        localError.value = 'No se pueden añadir horarios con fecha u hora pasadas.';
+        showTemporaryError('No se pueden añadir horarios con fecha u hora pasadas.');
+        localSuccess.value = null;
         return;
     }
 
@@ -64,9 +97,26 @@ function createSession() {
             localError.value = null;
             sessionForm.value.date = '';
             sessionForm.value.time = '';
+            showTemporarySuccess('Horario añadido correctamente.');
+        },
+        onError: (errors) => {
+            localSuccess.value = null;
+            const firstError = errors.session
+                || errors.date
+                || errors.room_id
+                || errors.price
+                || errors.film
+                || 'No se pudo añadir el horario. Revisa los datos e inténtalo de nuevo.';
+
+            showTemporaryError(firstError);
         },
     });
 }
+
+onBeforeUnmount(() => {
+    clearSuccessTimer();
+    clearErrorTimer();
+});
 </script>
 
 <template>
@@ -74,10 +124,17 @@ function createSession() {
         <h3 class="text-sm font-semibold text-yellow-400 uppercase tracking-widest">Gestión de horarios</h3>
 
         <p
-            v-if="formError"
+            v-if="localError"
             class="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300"
         >
-            {{ formError }}
+            {{ localError }}
+        </p>
+
+        <p
+            v-if="localSuccess"
+            class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300"
+        >
+            {{ localSuccess }}
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
