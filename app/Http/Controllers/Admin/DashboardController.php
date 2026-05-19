@@ -15,6 +15,8 @@ class DashboardController extends Controller
     public function index() {
         abort_unless(Auth::user()?->role === 'admin', 403);
 
+        $dbDriver = DB::connection()->getDriverName();
+
         $today = now()->startOfDay();
 
         // Films currently in the cinema
@@ -73,7 +75,11 @@ class DashboardController extends Controller
         // Monthly revenue series from last 6 months
         $seriesStart = now()->subMonths(5)->startOfMonth();
 
-        $monthlyRevenueRaw = Purchase::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COALESCE(SUM(total), 0) as revenue')
+        $monthlyGrouping = $dbDriver === 'sqlite'
+            ? "CAST(strftime('%Y', created_at) AS INTEGER) as year, CAST(strftime('%m', created_at) AS INTEGER) as month"
+            : 'YEAR(created_at) as year, MONTH(created_at) as month';
+
+        $monthlyRevenueRaw = Purchase::selectRaw($monthlyGrouping.', COALESCE(SUM(total), 0) as revenue')
             ->whereDate('created_at', '>=', $seriesStart->toDateString())
             ->where('status', 'pagado')
             ->groupBy('year', 'month')
