@@ -57,11 +57,11 @@ const handlePosterChange = (e) => {
 const submit = () => {
     if (isEditing) {
         form.put(`/films/${props.film.id}`, {
-            onSuccess: () => router.visit('/'),
+            onSuccess: () => cancelAndGoBack(),
         });
     } else {
         form.post('/films', {
-            onSuccess: () => router.visit('/'),
+            onSuccess: () => cancelAndGoBack(),
         });
     }
 };

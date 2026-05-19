@@ -8,7 +8,7 @@ RUN apt-get update \
         unzip \
         libsqlite3-dev \
         libonig-dev \
-    && docker-php-ext-install pdo_sqlite mbstring \
+    && docker-php-ext-install pdo_sqlite mbstring bcmath \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
