@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Mail\TicketConfirmationMail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -61,7 +62,7 @@ class CheckoutController extends Controller {
             $selectedDiscountIds = [(int) $request->integer('discount_id')];
         }
         $availableDiscounts = $this->discountService
-            ->availableDiscountsForUser(Auth::user())
+            ->availableDiscountsForCheckout(Auth::user(), $subtotal)
             ->map(function (Discount $discount) use ($subtotal) {
                 return [
                     'id' => $discount->id,
@@ -145,14 +146,16 @@ class CheckoutController extends Controller {
         Stripe::setApiKey(config('services.stripe.secret'));
 
         try {
+            $successBaseUrl = route('checkout.success', [
+                'purchase' => $purchase->id,
+                'movie_session' => $session->id,
+            ]);
+
             $checkoutSession = StripeCheckoutSession::create([
                 'mode' => 'payment',
                 'customer_email' => $validated['email'],
-                'success_url' => route('checkout.success', [
-                    'purchase' => $purchase->id,
-                    'session_id' => '{CHECKOUT_SESSION_ID}',
-                    'movie_session' => $session->id,
-                ]),
+                // Keep the placeholder literal so Stripe can replace it after payment
+                'success_url' => $successBaseUrl.'&session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('checkout.cancel', [
                     'session' => $session->id,
                     'seat_ids' => $seatIds,
@@ -200,6 +203,22 @@ class CheckoutController extends Controller {
     // The real payment confirmation is done by webhook, this is just a landing page
     public function success(Request $request): Response {
         $purchase = Purchase::query()->with(['payment', 'tickets.seat'])->findOrFail($request->integer('purchase'));
+
+        if ($purchase->status !== 'pagado' && $request->filled('session_id')) {
+            try {
+                Stripe::setApiKey(config('services.stripe.secret'));
+
+                /** @var \Stripe\Checkout\Session|null $stripeSession */
+                $stripeSession = StripeCheckoutSession::retrieve($request->string('session_id')->toString());
+
+                if ($stripeSession && in_array($stripeSession->payment_status ?? null, ['paid', 'no_payment_required'], true)) {
+                    $this->finalizeCheckoutFromStripeSession($stripeSession);
+                    $purchase->refresh()->load(['payment', 'tickets.seat']);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         $movieSession = null;
         $googleCalendarUrl = null;
@@ -292,6 +311,11 @@ class CheckoutController extends Controller {
         /** @var \Stripe\Checkout\Session $stripeSession */
         $stripeSession = $event->data->object;
 
+        $this->finalizeCheckoutFromStripeSession($stripeSession);
+    }
+
+    private function finalizeCheckoutFromStripeSession(\Stripe\Checkout\Session $stripeSession): void {
+
         $purchaseId = (int) ($stripeSession->metadata->purchase_id ?? 0);
         $movieSessionId = (int) ($stripeSession->metadata->movie_session_id ?? 0);
         $seatIds = collect(explode(',', (string) ($stripeSession->metadata->seat_ids ?? '')))
@@ -380,11 +404,19 @@ class CheckoutController extends Controller {
 
         // Only send if the purchase ended up as paid
         if ($purchase->status === 'pagado') {
-            if ($purchase->user && $subtotal > 50) {
+            if ($purchase->user && $subtotal >= DiscountService::LARGE_PURCHASE_THRESHOLD) {
                 $this->discountService->grantLargePurchaseDiscount($purchase->user);
             }
 
-            Mail::to($purchase->contact_email)->send(new TicketConfirmationMail($purchase));
+            try {
+                Mail::to($purchase->contact_email)->send(new TicketConfirmationMail($purchase));
+            } catch (\Throwable $e) {
+                Log::warning('Ticket confirmation email failed.', [
+                    'purchase_id' => $purchase->id,
+                    'email' => $purchase->contact_email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 

@@ -18,10 +18,10 @@ fi
 php artisan storage:link --force || true
 php artisan migrate --force
 
-# Only seed if the database is empty to avoid duplicates on redeployments
-FILM_COUNT=$(php artisan tinker --no-interaction --execute="echo \App\Models\Film::count();" 2>/dev/null | tail -1)
-if [ "$FILM_COUNT" = "0" ] || [ -z "$FILM_COUNT" ]; then
+# Seed once per persistent volume to avoid duplicates on redeployments
+if [ ! -f storage/.seeded ]; then
     php artisan db:seed --force
+    touch storage/.seeded
 fi
 
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"

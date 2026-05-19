@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 
 class DiscountService {
     private const DEFAULT_PERCENTAGE = 10;
+    public const LARGE_PURCHASE_THRESHOLD = 50.0;
 
     public function ensureWelcomeDiscount(User $user): Discount {
         return Discount::query()->firstOrCreate(
@@ -70,6 +71,22 @@ class DiscountService {
             ->get();
     }
 
+    public function availableDiscountsForCheckout(?User $user, float $subtotal): Collection {
+        return $this->availableDiscountsForUser($user)
+            ->filter(function (Discount $discount) use ($subtotal, $user) {
+                if ($discount->reason === Discount::REASON_BIRTHDAY) {
+                    return $user?->birth_date && $user->birth_date->format('m-d') === now()->format('m-d');
+                }
+
+                if ($discount->reason === Discount::REASON_LARGE_PURCHASE) {
+                    return $subtotal >= self::LARGE_PURCHASE_THRESHOLD;
+                }
+
+                return true;
+            })
+            ->values();
+    }
+
     public function resolveCheckoutDiscount(?User $user, ?int $discountId, float $subtotal): ?Discount {
         if (! $user || ! $discountId) {
             return null;
@@ -111,7 +128,17 @@ class DiscountService {
             ->whereIn('id', $ids)
             ->available()
             ->get()
-            ->filter(fn (Discount $discount) => $this->calculateAmount($discount, $subtotal) > 0)
+            ->filter(function (Discount $discount) use ($subtotal, $user) {
+                if ($discount->reason === Discount::REASON_BIRTHDAY) {
+                    return $user?->birth_date && $user->birth_date->format('m-d') === now()->format('m-d');
+                }
+
+                if ($discount->reason === Discount::REASON_LARGE_PURCHASE && $subtotal < self::LARGE_PURCHASE_THRESHOLD) {
+                    return false;
+                }
+
+                return $this->calculateAmount($discount, $subtotal) > 0;
+            })
             ->values();
     }
 
