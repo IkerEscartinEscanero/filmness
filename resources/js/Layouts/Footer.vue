@@ -13,11 +13,11 @@
     ];
 
     const legalLinks = [
-        'Aviso legal',
-        'Condiciones de compra',
-        'Accesibilidad',
-        'Política de privacidad',
-        'Política de cookies',
+        { label: 'Aviso legal', href: route('legal.notice') },
+        { label: 'Condiciones de compra', href: route('legal.terms') },
+        { label: 'Accesibilidad', href: route('legal.accessibility') },
+        { label: 'Política de privacidad', href: route('legal.privacy') },
+        { label: 'Política de cookies', href: route('legal.cookies') },
     ];
 
     const footerClass = computed(() => (
@@ -62,13 +62,14 @@
             <!-- Legal -->
             <div class="flex flex-col items-center md:items-end gap-2 text-sm">
                 <h6 class="text-yellow-500 font-semibold uppercase tracking-wider mb-2">Legal</h6>
-                <span
+                <Link
                     v-for="link in legalLinks"
-                    :key="link"
-                    :class="legalItemClass"
+                    :key="link.label"
+                    :href="link.href"
+                    :class="[legalItemClass, footerLinkClass]"
                 >
-                    {{ link }}
-                </span>
+                    {{ link.label }}
+                </Link>
             </div>
         </div>
 

@@ -27,6 +27,23 @@ Route::get('/proximos-estrenos', [FilmController::class, 'upcoming'])->name('upc
 Route::get('/movies/{film}', [FilmController::class, 'show'])->name('movies.show');
 Route::get('/sessions/{session}/seats', [MovieSessionController::class, 'seats'])->name('sessions.seats');
 Route::get('/sobre-nosotros', fn () => Inertia::render('About'))->name('about');
+Route::get('/aviso-legal', fn () => Inertia::render('Legal/LegalNotice'))->name('legal.notice');
+Route::get('/condiciones-de-compra', fn () => Inertia::render('Legal/PurchaseTerms'))->name('legal.terms');
+Route::get('/accesibilidad', fn () => Inertia::render('Legal/Accessibility'))->name('legal.accessibility');
+Route::get('/politica-de-privacidad', fn () => Inertia::render('Legal/PrivacyPolicy'))->name('legal.privacy');
+Route::get('/politica-de-cookies', fn () => Inertia::render('Legal/CookiesPolicy'))->name('legal.cookies');
+Route::get('/modelodesistimiento/', function () {
+    $pdfPath = public_path('legal/modelodesistimiento.pdf');
+
+    if (! file_exists($pdfPath)) {
+        abort(404, 'El documento de desistimiento no esta disponible.');
+    }
+
+    return response()->file($pdfPath, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="modelo-desistimiento.pdf"',
+    ]);
+})->name('legal.withdrawal');
 
 // Checkout and payment routes
 Route::get('/sessions/{session}/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
