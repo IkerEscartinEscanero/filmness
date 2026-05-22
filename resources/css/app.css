@@ -1,2 +1,343 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+/* Activa las variantes dark: de Tailwind cuando el elemento html tiene la clase .dark */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Variables de tema ─────────────────────────────────────────────────────── */
+:root {
+    --fn-bg: #0f172a;
+    --fn-bg-card: #1e293b;
+    --fn-bg-card-muted: rgba(30, 41, 59, 0.6);
+    --fn-bg-nav: #0f172a;
+    --fn-text: #ffffff;
+    --fn-text-muted: #94a3b8;
+    --fn-text-secondary: #cbd5e1;
+    --fn-border: rgba(255, 255, 255, 0.1);
+    --fn-border-accent: rgba(234, 179, 8, 0.2);
+}
+
+html.light {
+    --fn-bg: #f1f5f9;
+    --fn-bg-card: #ffffff;
+    --fn-bg-card-muted: rgba(255, 255, 255, 0.75);
+    --fn-bg-nav: #f8fafc;
+    --fn-text: #0f172a;
+    --fn-text-muted: #64748b;
+    --fn-text-secondary: #475569;
+    --fn-border: rgba(0, 0, 0, 0.08);
+    --fn-border-accent: rgba(234, 179, 8, 0.3);
+}
+
+/* ── Clases helper que reaccionan automáticamente al tema ──────────────────── */
+/* Úsalas en las páginas en lugar de los colores hardcodeados de Tailwind.     */
+/* Ejemplo: <main class="fn-bg fn-text"> en vez de <main class="bg-[#0F172A] text-white"> */
+
+.fn-bg { background-color: var(--fn-bg); }
+.fn-bg-card { background-color: var(--fn-bg-card); }
+.fn-bg-card-muted { background-color: var(--fn-bg-card-muted); }
+.fn-bg-nav { background-color: var(--fn-bg-nav); }
+.fn-text { color: var(--fn-text); }
+.fn-text-muted { color: var(--fn-text-muted); }
+.fn-text-secondary { color: var(--fn-text-secondary); }
+.fn-border { border-color: var(--fn-border); }
+.fn-border-accent { border-color: var(--fn-border-accent); }
+
+html,
+body,
+#app {
+    background-color: var(--fn-bg);
+    color: var(--fn-text);
+    transition: background-color 200ms ease, color 200ms ease;
+}
+
+html.light :where(.bg-\[\#0F172A\], .bg-slate-950, .bg-slate-900, .bg-zinc-950) {
+    background-color: #f1f5f9 !important;
+}
+
+html.light :where(.bg-slate-900\/95, .bg-slate-900\/70, .bg-slate-900\/60, .bg-slate-900\/40, .bg-slate-800\/70, .bg-slate-800\/60, .bg-slate-800\/40, .bg-slate-800, .bg-slate-700, .bg-black\/60) {
+    background-color: rgba(255, 255, 255, 0.78) !important;
+}
+
+html.light :where(.bg-white, .bg-gray-100) {
+    background-color: #ffffff !important;
+}
+
+html.light :where(.text-white, .text-gray-800, .text-gray-700) {
+    color: #0f172a !important;
+}
+
+html.light :where(.text-slate-300, .text-slate-400, .text-slate-500, .text-gray-500, .text-gray-400) {
+    color: #64748b !important;
+}
+
+html.light :where(.text-yellow-300, .text-yellow-400, .text-yellow-500) {
+    color: #1e3a8a !important;
+}
+
+html.light :where(.border-white\/20, .border-white\/10, .border-white\/5, .border-slate-700, .border-slate-600, .border-gray-200, .border-gray-100) {
+    border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.dark :where(.bg-gray-100, .bg-white) {
+    background-color: #0f172a !important;
+}
+
+html.dark :where(.text-gray-800, .text-gray-700) {
+    color: #ffffff !important;
+}
+
+html.dark :where(.text-gray-500, .text-gray-400) {
+    color: #94a3b8 !important;
+}
+
+html.dark :where(.border-gray-200, .border-gray-100) {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark :where(.hover\:bg-gray-100:hover, .focus\:bg-gray-100:focus) {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark :where(.hover\:text-gray-500:hover, .focus\:text-gray-500:focus, .hover\:text-gray-700:hover) {
+    color: #facc15 !important;
+}
+
+html.light .movie-title-fixed {
+    color: #ffffff !important;
+}
+
+html.light .movie-genre-badge {
+    background-color: rgba(234, 179, 8, 0.2) !important;
+    color: #facc15 !important;
+}
+
+html.light .movie-rating-stars {
+    color: #facc15 !important;
+}
+
+html.light .movie-rating-value,
+html.light .movie-rating-empty {
+    color: #475569 !important;
+}
+
+html.light .about-hero {
+    border-color: rgba(30, 58, 138, 0.12) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(226, 232, 240, 0.92) 100%) !important;
+}
+
+html.light .about-hero-overlay {
+    background: radial-gradient(circle at top, rgba(250, 204, 21, 0.18), transparent 28%), linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(148, 163, 184, 0.12) 100%) !important;
+}
+
+html.light .about-hero-title {
+    color: #0f172a !important;
+}
+
+html.light .about-hero-copy {
+    color: #475569 !important;
+}
+
+html.light .about-card {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .showtimes-shell {
+    background-color: rgba(255, 255, 255, 0.86) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .showtimes-panel {
+    background-color: rgba(248, 250, 252, 0.96) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .showtimes-label {
+    color: #1e3a8a !important;
+}
+
+html.light .showtimes-day-button,
+html.light .showtimes-time-button {
+    background-color: #ffffff !important;
+    border-color: rgba(30, 41, 59, 0.14) !important;
+    color: #334155 !important;
+}
+
+html.light .showtimes-day-button:hover,
+html.light .showtimes-time-button:hover {
+    border-color: rgba(30, 58, 138, 0.45) !important;
+    color: #1e3a8a !important;
+}
+
+html.light .showtimes-day-button.is-active {
+    background-color: rgba(250, 204, 21, 0.16) !important;
+    border-color: #eab308 !important;
+    color: #1e3a8a !important;
+}
+
+html.light .showtimes-time-button.is-active {
+    background-color: #eab308 !important;
+    border-color: #eab308 !important;
+    color: #0f172a !important;
+}
+
+html.light .seats-back-button {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+    color: #334155 !important;
+}
+
+html.light .seats-back-button:hover {
+    background-color: #f8fafc !important;
+    border-color: rgba(30, 58, 138, 0.35) !important;
+    color: #1e3a8a !important;
+}
+
+html.light .user-management-page {
+    color: #0f172a;
+}
+
+html.light .user-management-page :where(.bg-slate-950\/95, .bg-slate-950\/60, .bg-slate-900\/70, .bg-slate-900\/60, .bg-slate-900\/50, .bg-slate-800\/75, .bg-slate-800\/70, .bg-slate-800\/50, .bg-slate-800\/40, .bg-slate-800, .bg-slate-700) {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.light .user-management-page :where(.border-white\/20, .border-white\/15, .border-white\/10, .border-white\/8, .border-white\/5, .border-slate-700, .border-slate-600) {
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html.light .user-management-page :where(.text-white, .text-slate-200, .text-slate-100) {
+    color: #0f172a !important;
+}
+
+html.light .user-management-page :where(.text-slate-300, .text-slate-400, .text-slate-500) {
+    color: #475569 !important;
+}
+
+html.light .user-management-page input,
+html.light .user-management-page textarea,
+html.light .user-management-page select {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+html.light .checkout-discounts {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light .checkout-discount-item {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+    color: #334155 !important;
+}
+
+html.light .checkout-discount-item strong {
+    color: #0f172a !important;
+}
+
+html.light .checkout-discount-value {
+    color: #1e3a8a !important;
+}
+
+html.light .profile-section-title {
+    color: #1e3a8a !important;
+}
+
+html.light .profile-discount-card {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+    color: #0f172a !important;
+    opacity: 1 !important;
+}
+
+html.light .profile-discount-status {
+    background-color: rgba(16, 185, 129, 0.14) !important;
+    color: #047857 !important;
+}
+
+html.light .profile-discount-usage {
+    border: 1px solid transparent;
+}
+
+html.light .profile-discount-unused {
+    background-color: rgba(59, 130, 246, 0.14) !important;
+    color: #1d4ed8 !important;
+    border-color: rgba(59, 130, 246, 0.28) !important;
+}
+
+html.light .profile-discount-used {
+    background-color: rgba(245, 158, 11, 0.16) !important;
+    color: #b45309 !important;
+    border-color: rgba(245, 158, 11, 0.32) !important;
+}
+
+html.light .profile-discount-value {
+    color: #1d4ed8 !important;
+}
+
+html.light .profile-edit-modal {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+html.light .profile-edit-title {
+    color: #1e3a8a !important;
+}
+
+html.light .profile-edit-subtitle {
+    color: #475569 !important;
+}
+
+html.light .profile-edit-info {
+    background-color: #eef2f7 !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html.light .profile-edit-info-title {
+    color: #64748b !important;
+}
+
+html.light .profile-edit-info-copy {
+    color: #334155 !important;
+}
+
+html.light .profile-edit-avatar-box {
+    background-color: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.16) !important;
+}
+
+html.light .profile-edit-avatar-caption {
+    color: #64748b !important;
+}
+
+html.light .profile-edit-confirm {
+    background-color: rgba(250, 204, 21, 0.16) !important;
+    border-color: rgba(234, 179, 8, 0.5) !important;
+    color: #92400e !important;
+}
+
+.stars-yellow {
+    color: #facc15 !important;
+}
+
+html.light .stars-yellow {
+    color: #facc15 !important;
+}
+
+.discount-icon-badge {
+    background-color: #ffffff;
+}
+
+html.light .discount-icon-badge {
+    background-color: rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+}
+
+html.light .social-icon-link:hover,
+html.light .social-icon-link:focus-visible,
+html.dark .social-icon-link:hover,
+html.dark .social-icon-link:focus-visible {
+    color: #eab308 !important;
+}

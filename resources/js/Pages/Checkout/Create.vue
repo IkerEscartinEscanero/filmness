@@ -112,19 +112,19 @@ function submit() {
                         </div>
 
                         <form class="rounded-2xl bg-slate-900/60 border border-white/5 p-5" @submit.prevent="submit">
-                            <div v-if="availableDiscounts.length" class="mb-5 rounded-2xl border border-white/5 bg-slate-950/60 p-4">
+                            <div v-if="availableDiscounts.length" class="checkout-discounts mb-5 rounded-2xl border border-white/5 bg-slate-950/60 p-4">
                                 <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Descuentos a aplicar</p>
                                 <p class="mt-2 text-xs text-slate-500">Puedes marcar uno, varios o ninguno.</p>
                                 <div class="mt-3 space-y-3">
                                     <label
                                         v-for="discount in availableDiscounts"
                                         :key="discount.id"
-                                        class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-700 px-4 py-3 text-sm text-slate-300 hover:border-yellow-500/40"
+                                        class="checkout-discount-item flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-700 px-4 py-3 text-sm text-slate-300 hover:border-yellow-500/40"
                                     >
                                         <input v-model="form.discount_ids" :value="discount.id" type="checkbox" class="mt-1">
                                         <span>
                                             <strong class="block text-white">{{ discount.label }}</strong>
-                                            <span class="block text-yellow-300">{{ discount.value }} · ahorro de {{ Number(discount.amount).toFixed(2) }} €</span>
+                                            <span class="checkout-discount-value block text-yellow-300">{{ discount.value }} · ahorro de {{ Number(discount.amount).toFixed(2) }} €</span>
                                             <span v-if="discount.expiration_date" class="text-slate-400">Caduca: {{ discount.expiration_date }}</span>
                                         </span>
                                     </label>

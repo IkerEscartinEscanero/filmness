@@ -125,11 +125,11 @@ function confirmReleaseSeat() {
                     <div class="flex items-center gap-3">
                         <button
                             @click="goBack"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-600 bg-slate-800 hover:bg-slate-700 transition text-slate-200 hover:text-white text-sm font-medium"
+                            class="seats-back-button inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-600 bg-slate-800 hover:bg-slate-700 transition text-slate-200 hover:text-white text-sm font-medium"
                             title="Volver"
                             aria-label="Volver"
                         >
-                            <span>🢀 Volver</span>
+                            <span class="scale-x-[-1]">➤</span> Volver
                         </button>
                     </div>
 

@@ -162,7 +162,7 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
     <Layout>
         <Head :title="film.title" />
 
-        <main class="min-h-screen bg-[#0F172A] text-white">
+        <main class="min-h-screen bg-[#0F172A] text-white film-show-page">
             <MovieHeroHeader
                 :film="film"
                 :poster-url="posterUrl"
@@ -214,21 +214,21 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                             Horarios
                         </h2>
 
-                        <div v-if="availableDays.length === 0" class="bg-slate-800/60 rounded-2xl border border-white/5 p-5 text-center">
+                        <div v-if="availableDays.length === 0" class="showtimes-shell bg-slate-800/60 rounded-2xl border border-white/5 p-5 text-center">
                             <p class="text-slate-500 text-sm italic">No hay sesiones disponibles próximamente.</p>
                         </div>
 
-                        <div v-else class="bg-slate-800/60 rounded-2xl border border-white/5 p-5 flex flex-col gap-5">
-                            <div class="rounded-xl border border-white/5 bg-slate-900/40 p-3">
-                                <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Elige día</p>
+                        <div v-else class="showtimes-shell bg-slate-800/60 rounded-2xl border border-white/5 p-5 flex flex-col gap-5">
+                            <div class="showtimes-panel rounded-xl border border-white/5 bg-slate-900/40 p-3">
+                                <p class="showtimes-label text-xs font-semibold uppercase tracking-widest text-slate-500">Elige día</p>
                                 <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                     <button
                                         v-for="day in availableDays"
                                         :key="day"
                                         @click="selectDay(day)"
-                                        class="cursor-pointer rounded-xl border px-3 py-3 text-left transition"
+                                        class="showtimes-day-button cursor-pointer rounded-xl border px-3 py-3 text-left transition"
                                         :class="selectedDay === day
-                                            ? 'bg-yellow-500/15 border-yellow-500 text-yellow-300'
+                                            ? 'is-active bg-yellow-500/15 border-yellow-500 text-yellow-300'
                                             : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500'"
                                     >
                                         <p class="text-xs uppercase tracking-widest opacity-80">{{ formatDayTab(day) }}</p>
@@ -237,8 +237,8 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                                 </div>
                             </div>
 
-                            <div class="rounded-xl border border-white/5 bg-slate-900/40 p-3">
-                                <p class="text-xs font-semibold uppercase tracking-widest text-slate-500">Elige hora</p>
+                            <div class="showtimes-panel rounded-xl border border-white/5 bg-slate-900/40 p-3">
+                                <p class="showtimes-label text-xs font-semibold uppercase tracking-widest text-slate-500">Elige hora</p>
                                 <div class="mt-3 flex flex-wrap gap-2">
                                     <div
                                         v-for="session in sessionsForDay"
@@ -247,9 +247,9 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                                     >
                                         <button
                                             @click="selectSession(session)"
-                                            class="cursor-pointer px-4 py-2.5 rounded-xl text-sm font-semibold transition border min-w-[120px]"
+                                            class="showtimes-time-button cursor-pointer px-4 py-2.5 rounded-xl text-sm font-semibold transition border min-w-[120px]"
                                             :class="selectedSession?.id === session.id
-                                                ? 'bg-yellow-500 text-slate-950 border-yellow-500 shadow-md shadow-yellow-500/20'
+                                                ? 'is-active bg-yellow-500 text-slate-950 border-yellow-500 shadow-md shadow-yellow-500/20'
                                                 : 'bg-slate-800 text-slate-100 border-slate-600 hover:border-yellow-500/60 hover:text-yellow-400'"
                                         >
                                             <span class="text-base">{{ formatTime(session.date) }}</span>
@@ -332,7 +332,7 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                                 </button>
                             </div>
                             <div class="space-y-2">
-                                <p class="text-sm text-yellow-300">{{ starsLabel(currentUserReview.stars) }}</p>
+                                <p class="stars-yellow text-sm text-yellow-300">{{ starsLabel(currentUserReview.stars) }}</p>
                                 <p class="text-sm text-slate-300">{{ currentUserReview.comment || 'Sin comentario' }}</p>
                             </div>
                         </div>
@@ -356,7 +356,7 @@ const starsLabel = (stars) => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 -
                                         <p class="text-xs text-slate-400">{{ review.date }}</p>
                                     </div>
                                 </div>
-                                <p class="text-yellow-300 text-sm mb-2">{{ starsLabel(review.stars) }}</p>
+                                <p class="stars-yellow text-yellow-300 text-sm mb-2">{{ starsLabel(review.stars) }}</p>
                                 <p class="text-slate-300 text-sm">{{ review.comment || 'Sin comentario' }}</p>
                             </article>
                         </div>

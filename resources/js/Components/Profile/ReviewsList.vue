@@ -31,7 +31,7 @@ defineProps({
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                             <p class="font-semibold text-white">{{ review.filmTitle }}</p>
                             <p class="text-xs text-slate-400">{{ review.date }}</p>
-                            <p class="text-sm text-yellow-300">{{ '★'.repeat(review.stars ?? 0) }}</p>
+                            <p class="stars-yellow text-sm text-yellow-300">{{ '★'.repeat(review.stars ?? 0) }}</p>
                         </div>
                         <p class="mt-2 text-sm text-slate-300">{{ review.comment || 'Sin comentario' }}</p>
                     </div>

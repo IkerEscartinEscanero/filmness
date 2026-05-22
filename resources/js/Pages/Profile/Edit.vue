@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
     <Head title="Mi perfil" />
 
     <Layout>
-        <main class="min-h-screen bg-[#0F172A] text-white">
+        <main class="user-management-page min-h-screen bg-[#0F172A] text-white">
             <div class="mx-auto max-w-7xl px-6 py-10 space-y-8">
                 <div v-if="status === 'profile-updated' && !dismissProfileUpdate" class="rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                     Perfil actualizado correctamente.
@@ -179,7 +179,7 @@ onBeforeUnmount(() => {
                     <div class="relative">
                         <div>
                             <div>
-                                <h2 class="text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mi cuenta</h2>
+                                <h2 class="profile-section-title text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mi cuenta</h2>
                                 <p class="mt-2 max-w-2xl text-sm text-slate-400 md:text-base">Tu espacio personal para gestionar la cuenta, la imagen de perfil y los datos principales.</p>
                             </div>
                         </div>
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
                 <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8">
                     <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.14),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.08),transparent_30%)]"></div>
                     <div class="relative">
-                        <h2 class="text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis películas vistas</h2>
+                        <h2 class="profile-section-title text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis películas vistas</h2>
 
                         <div v-if="watchedFilms.length" class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
                         <article v-for="film in watchedFilms" :key="film.id" class="overflow-hidden rounded-2xl border border-white/10 bg-slate-800/70">
@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
                 <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8">
                     <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.14),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.08),transparent_30%)]"></div>
                     <div class="relative">
-                        <h2 class="text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis reseñas</h2>
+                        <h2 class="profile-section-title text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis reseñas</h2>
 
                         <div v-if="reviews.length" class="mt-6 space-y-4">
                         <article v-for="review in reviews" :key="review.id" class="rounded-2xl border border-white/10 bg-slate-800/70 p-4">
@@ -287,7 +287,7 @@ onBeforeUnmount(() => {
                                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                                         <p class="font-semibold">{{ review.filmTitle }}</p>
                                         <p class="text-xs text-slate-400">{{ review.date }}</p>
-                                        <p class="text-sm text-yellow-300">{{ starsLabel(review.stars) }}</p>
+                                        <p class="stars-yellow text-sm text-yellow-300">{{ starsLabel(review.stars) }}</p>
                                     </div>
                                     <p class="mt-2 text-sm text-slate-300">{{ review.comment || 'Sin comentario' }}</p>
                                 </div>
@@ -301,16 +301,16 @@ onBeforeUnmount(() => {
                     </div>
                 </section>
 
-                <section class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8">
+                <section class="profile-discounts-section relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 md:p-8">
                     <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.14),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.08),transparent_30%)]"></div>
                     <div class="relative">
-                        <h2 class="text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis descuentos</h2>
+                        <h2 class="profile-section-title text-xs font-semibold md:text-2xl uppercase tracking-[0.35em] text-yellow-300/80">Mis descuentos</h2>
 
                         <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                         <article
                             v-for="discount in discounts"
                             :key="discount.key"
-                            class="rounded-2xl border px-4 py-3"
+                            class="profile-discount-card rounded-2xl border px-4 py-3"
                             :class="discount.available
                                 ? 'border-emerald-400/30 bg-emerald-500/10'
                                 : 'border-slate-600/80 bg-slate-800/50 opacity-70'"
@@ -321,21 +321,21 @@ onBeforeUnmount(() => {
 
                             <div class="mt-3 flex flex-wrap items-center gap-2">
                                 <span
-                                    class="rounded-full px-2 py-1 text-xs font-semibold"
+                                    class="profile-discount-status rounded-full px-2 py-1 text-xs font-semibold"
                                     :class="discount.available ? 'bg-emerald-400/15 text-emerald-200' : 'bg-slate-700 text-slate-300'"
                                 >
                                     {{ discount.available ? 'Disponible' : 'No disponible' }}
                                 </span>
                                 <span
                                     v-if="discount.reason !== 'large_purchase'"
-                                    class="rounded-full px-2 py-1 text-xs font-semibold"
-                                    :class="discount.used ? 'bg-amber-400/15 text-amber-200' : 'bg-sky-400/15 text-sky-200'"
+                                    class="profile-discount-usage rounded-full px-2 py-1 text-xs font-semibold"
+                                    :class="discount.used ? 'profile-discount-used bg-amber-400/15 text-amber-200' : 'profile-discount-unused bg-sky-400/15 text-sky-200'"
                                 >
                                     {{ discount.used ? 'Usado o caducado' : 'Sin usar' }}
                                 </span>
                             </div>
 
-                            <p class="mt-2 text-sm text-yellow-300">{{ discount.value }}</p>
+                            <p class="profile-discount-value mt-2 text-sm text-yellow-300">{{ discount.value }}</p>
                             <p v-if="discount.expiration_date" class="mt-1 text-xs text-slate-400">Caduca: {{ discount.expiration_date }}</p>
                         </article>
                         </div>
@@ -345,9 +345,9 @@ onBeforeUnmount(() => {
         </main>
 
         <Modal :show="showEditModal" max-width="2xl" @close="closeEditModal">
-            <div class="bg-slate-900 p-6 text-white">
-                <h3 class="text-xs uppercase tracking-[0.2em] text-yellow-300">Modificar perfil</h3>
-                <p class="mt-2 text-sm text-slate-400">Puedes cambiar datos personales, foto de perfil y contraseña.</p>
+            <div class="profile-edit-modal bg-slate-900 p-6 text-white">
+                <h3 class="profile-edit-title text-xs uppercase tracking-[0.2em] text-yellow-300">Modificar perfil</h3>
+                <p class="profile-edit-subtitle mt-2 text-sm text-slate-400">Puedes cambiar datos personales, foto de perfil y contraseña.</p>
 
                 <form class="mt-6 space-y-4" @submit.prevent="requestSave">
                     <div>
@@ -362,9 +362,9 @@ onBeforeUnmount(() => {
                         <InputError class="mt-2" :message="profileForm.errors.email" />
                     </div>
 
-                    <div class="rounded-2xl border border-white/10 bg-slate-800/50 px-4 py-3">
-                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Fecha de cumpleaños</p>
-                        <p class="mt-1 text-sm text-slate-200">No se puede modificar desde el perfil por motivos de seguridad.</p>
+                    <div class="profile-edit-info rounded-2xl border border-white/10 bg-slate-800/50 px-4 py-3">
+                        <p class="profile-edit-info-title text-xs uppercase tracking-[0.2em] text-slate-400">Fecha de cumpleaños</p>
+                        <p class="profile-edit-info-copy mt-1 text-sm text-slate-200">No se puede modificar desde el perfil por motivos de seguridad.</p>
                     </div>
 
                     <div>
@@ -378,7 +378,7 @@ onBeforeUnmount(() => {
                                 @change="onAvatarChange"
                             />
 
-                            <div class="rounded-2xl border-2 border-dashed border-slate-600 bg-slate-800/70 p-4 text-center transition-colors duration-200 hover:border-yellow-500">
+                            <div class="profile-edit-avatar-box rounded-2xl border-2 border-dashed border-slate-600 bg-slate-800/70 p-4 text-center transition-colors duration-200 hover:border-yellow-500">
                                 <div class="mx-auto flex w-full max-w-[12rem] justify-center">
                                     <div class="relative h-40 w-40 overflow-visible">
                                         <div class="absolute inset-[1rem] z-10 overflow-hidden rounded-full bg-slate-900 shadow-lg shadow-slate-950/50">
@@ -401,7 +401,7 @@ onBeforeUnmount(() => {
                                     </div>
                                 </div>
 
-                                <p class="mt-3 text-sm text-slate-200">
+                                <p class="profile-edit-avatar-caption mt-3 text-sm text-slate-200">
                                     {{ localAvatarPreview ? 'Nueva foto seleccionada' : 'Haz clic para seleccionar una foto de perfil' }}
                                 </p>
                             </div>
@@ -429,7 +429,7 @@ onBeforeUnmount(() => {
                         <InputError class="mt-2" :message="profileForm.errors.password_confirmation" />
                     </div>
 
-                    <div v-if="confirmProfileChanges" class="rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+                    <div v-if="confirmProfileChanges" class="profile-edit-confirm rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
                         Confirma que quieres aplicar estos cambios en tu perfil.
                     </div>
 

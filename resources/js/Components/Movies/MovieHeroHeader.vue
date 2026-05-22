@@ -42,18 +42,18 @@ const formatDate = (date) => {
                 class="h-25 max-w-[240px] w-auto rounded-xl border border-white/10 shadow-xl object-contain bg-slate-900/60"
             />
             <div>
-                <h1 class="text-4xl font-bold text-white drop-shadow">{{ film.title }}</h1>
+                <h1 class="movie-title-fixed text-4xl font-bold text-white drop-shadow">{{ film.title }}</h1>
                 <div class="flex items-center gap-3 mt-1 text-slate-400 text-sm">
-                    <span v-if="film.genre" class="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full text-xs font-medium">{{ film.genre }}</span>
+                    <span v-if="film.genre" class="movie-genre-badge bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full text-xs font-medium">{{ film.genre }}</span>
                     <span v-if="film.duration">{{ film.duration }} min</span>
                     <span v-if="film.release_date">{{ formatDate(film.release_date) }}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-2">
                     <template v-if="averageStars !== null">
-                        <span class="text-yellow-400 text-lg tracking-wider">{{ starsLabel(averageStars) }}</span>
-                        <span class="text-slate-300 text-xs">{{ averageStars.toFixed(1) }} / 5</span>
+                        <span class="movie-rating-stars stars-yellow text-yellow-400 text-lg tracking-wider">{{ starsLabel(averageStars) }}</span>
+                        <span class="movie-rating-value text-slate-300 text-xs">{{ averageStars.toFixed(1) }} / 5</span>
                     </template>
-                    <span v-else class="text-slate-500 text-xs italic">No hay valoración disponible</span>
+                    <span v-else class="movie-rating-empty text-slate-500 text-xs italic">No hay valoración disponible</span>
                 </div>
             </div>
 

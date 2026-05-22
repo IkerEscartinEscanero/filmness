@@ -126,7 +126,7 @@ watch(
                     :disabled="!hasMultipleFilms"
                     @click="goPrev"
                 >
-                    <span class="text-2xl leading-none">🢀</span>
+                    <span class="text-2xl scale-x-[-1] leading-none">➤</span>
                 </button>
 
                 <button
@@ -135,7 +135,7 @@ watch(
                     :disabled="!hasMultipleFilms"
                     @click="goNext"
                 >
-                    <span class="text-2xl leading-none">🢂</span>
+                    <span class="text-2xl leading-none">➤</span>
                 </button>
             </div>
         </div>
@@ -192,7 +192,7 @@ watch(
                     :disabled="!hasMultipleFilms"
                     @click="goPrev"
                 >
-                    <span class="text-3xl leading-none">🢀</span>
+                    <span class="text-3xl scale-x-[-1] leading-none">➤</span>
                 </button>
 
                 <button
@@ -201,7 +201,7 @@ watch(
                     :disabled="!hasMultipleFilms"
                     @click="goNext"
                 >
-                    <span class="text-3xl leading-none">🢂</span>
+                    <span class="text-3xl leading-none">➤</span>
                 </button>
             </div>
         </div>

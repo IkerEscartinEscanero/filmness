@@ -32,7 +32,7 @@
 <template>
     <Head title="Login" />
     
-    <main class="min-h-screen bg-slate-950 text-white">
+    <main class="user-management-page min-h-screen bg-slate-950 text-white">
         <!-- Elementos decorativos llamativos -->
         <div class="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-transparent to-slate-800/50 pointer-events-none"></div>
         <div class="absolute right-0 top-28 h-64 w-64 rounded-full bg-slate-700/30 blur-3xl pointer-events-none animate-pulse"></div>

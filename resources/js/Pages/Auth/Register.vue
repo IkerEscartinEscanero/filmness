@@ -24,7 +24,7 @@ const submit = () => {
 <template>
     <Head title="Registrarse" />
 
-    <main class="relative min-h-screen bg-slate-950 text-white overflow-hidden">
+    <main class="user-management-page relative min-h-screen bg-slate-950 text-white overflow-hidden">
         <!-- Elementos decorativos llamativos -->
         <div class="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-transparent to-slate-800/60 pointer-events-none"></div>
         <div class="absolute right-0 top-24 h-64 w-64 rounded-full bg-slate-700/30 blur-3xl pointer-events-none animate-pulse"></div>
