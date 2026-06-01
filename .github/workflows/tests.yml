@@ -29,16 +29,8 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Install Node dependencies
-        run: npm ci
-
       - name: Generate application key
         run: php artisan key:generate
 
-      - name: Prepare test database
-        run: |
-          touch database/database.sqlite
-          php artisan migrate --force
-
       - name: Run tests
-        run: php artisan test
+        run: composer run test
