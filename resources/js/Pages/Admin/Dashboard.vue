@@ -156,7 +156,7 @@ const lineChartOption = computed(() => {
             splitLine: { lineStyle: { color: '#1E293B' } },
             axisLabel: {
                 color: '#94A3B8',
-                formatter: (value) => `€${value}`,
+                formatter: (value) => `${value}€`,
             },
         },
         series: [

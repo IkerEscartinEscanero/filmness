@@ -66,7 +66,7 @@
                             <div class="discount-icon-badge w-12 h-12 rounded-full flex items-center justify-center text-2xl"><img src="/images/tarjeta.png" class="w-7 h-7 object-contain"/></div>
                             <h3 class="text-lg font-semibold text-white">Premiamos las compras grandes</h3>
                             <p class="text-slate-400 text-sm leading-relaxed">
-                                Si completas una compra superior a <span class="text-yellow-300 font-semibold">50 €</span>, recibirás un nuevo descuento del 10% para usarlo en una futura compra.
+                                Si completas una compra superior a <span class="text-yellow-300 font-semibold">50€</span>, recibirás un nuevo descuento del 10% para usarlo en una futura compra.
                             </p>
                             <span class="mt-auto inline-block rounded-full bg-yellow-500/10 border border-yellow-500/30 px-4 py-1 text-xs font-semibold text-yellow-300 w-fit">Descuento del 10% por +50€</span>
                         </div>

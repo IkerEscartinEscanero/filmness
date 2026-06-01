@@ -208,7 +208,7 @@
                     </tr>
                     <tr>
                         <td class="s-label">Total pagado</td>
-                        <td class="s-value">{{ number_format((float) $purchase->total, 2, ',', '.') }} €</td>
+                        <td class="s-value">{{ number_format((float) $purchase->total, 2, ',', '.') }}€</td>
                     </tr>
                 </table>
             </div>

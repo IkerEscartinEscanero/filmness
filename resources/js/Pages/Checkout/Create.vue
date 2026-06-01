@@ -108,7 +108,7 @@ function submit() {
                         <div class="rounded-2xl bg-slate-900/60 border border-white/5 p-5">
                             <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Entradas seleccionadas</p>
                             <p class="mt-2 text-lg font-semibold text-white">{{ selectedSeatLabels }}</p>
-                            <p class="mt-2 text-sm text-slate-400">{{ selectedCount }} entrada<span v-if="selectedCount !== 1">s</span> a {{ unitPrice }} €</p>
+                            <p class="mt-2 text-sm text-slate-400">{{ selectedCount }} entrada<span v-if="selectedCount !== 1">s</span> a {{ unitPrice }}€</p>
                         </div>
 
                         <form class="rounded-2xl bg-slate-900/60 border border-white/5 p-5" @submit.prevent="submit">
@@ -183,7 +183,7 @@ function submit() {
                         </div>
                         <div class="flex justify-between gap-4 text-slate-300">
                             <span>Subtotal</span>
-                            <span>{{ subtotalPrice }} €</span>
+                            <span>{{ subtotalPrice }}€</span>
                         </div>
                         <div v-if="selectedDiscounts.length" class="text-emerald-300 space-y-2">
                             <div
@@ -192,17 +192,17 @@ function submit() {
                                 class="flex justify-between gap-4"
                             >
                                 <span>{{ discount.label }}</span>
-                                <span>-{{ Number(discount.amount).toFixed(2) }} €</span>
+                                <span>-{{ Number(discount.amount).toFixed(2) }}€</span>
                             </div>
                             <div class="flex justify-between gap-4 border-t border-white/10 pt-2 font-semibold">
                                 <span>Total descuentos</span>
-                                <span>-{{ discountAmount }} €</span>
+                                <span>-{{ discountAmount }}€</span>
                             </div>
                         </div>
                         <div class="h-px bg-white/10"></div>
                         <div class="flex justify-between gap-4 text-white text-lg font-semibold">
                             <span>Total</span>
-                            <span>{{ totalPrice }} €</span>
+                            <span>{{ totalPrice }}€</span>
                         </div>
                     </div>
 

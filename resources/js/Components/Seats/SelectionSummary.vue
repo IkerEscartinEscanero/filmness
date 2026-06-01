@@ -23,8 +23,8 @@ const emit = defineEmits(['clear', 'checkout']);
                 </div>
                 <div class="text-right">
                     <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">Total</p>
-                    <p class="text-yellow-400 font-bold text-xl">{{ totalPrice }} €</p>
-                    <p class="text-slate-500 text-xs">{{ selectedCount }} × {{ seatPrice.toFixed(2) }} €</p>
+                    <p class="text-yellow-400 font-bold text-xl">{{ totalPrice }}€</p>
+                    <p class="text-slate-500 text-xs">{{ selectedCount }} × {{ seatPrice.toFixed(2) }}€</p>
                 </div>
             </div>
 

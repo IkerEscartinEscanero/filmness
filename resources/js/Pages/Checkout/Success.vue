@@ -73,7 +73,7 @@ function formatDateTime(iso) {
                         </div>
                         <div>
                             <p class="text-slate-400">Total pagado</p>
-                            <p class="mt-1 font-semibold text-white">{{ purchase.total.toFixed(2) }} €</p>
+                            <p class="mt-1 font-semibold text-white">{{ purchase.total.toFixed(2) }}€</p>
                         </div>
                         <div>
                             <p class="text-slate-400">Correo de envío</p>
