@@ -54,7 +54,7 @@ Route::post('/stripe/webhook', [CheckoutController::class, 'webhook'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('stripe.webhook');
 
-// Movie management routes (admins only)
+// Admin's management routes
 Route::middleware('auth')->group(function () {
     Route::get('/films/create', [FilmController::class, 'create'])->name('films.create');
     Route::post('/films', [FilmController::class, 'store'])->name('films.store');
@@ -64,10 +64,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/films/{film}/sessions', [MovieSessionController::class, 'store'])->name('films.sessions.store');
     Route::delete('/sessions/{session}', [MovieSessionController::class, 'destroy'])->name('sessions.destroy');
     Route::delete('/sessions/{session}/seats/{seat}/release', [MovieSessionController::class, 'releaseSeat'])->name('sessions.seats.release');
-});
-
-// Admin dashboard routes
-Route::middleware('auth')->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 });
 

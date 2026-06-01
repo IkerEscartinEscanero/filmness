@@ -3,6 +3,7 @@
 use App\Models\User;
 
 test('confirm password screen can be rendered', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->get('/confirm-password');
@@ -11,9 +12,12 @@ test('confirm password screen can be rendered', function () {
 });
 
 test('password can be confirmed', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
+    $token = csrf_token();
 
-    $response = $this->actingAs($user)->post('/confirm-password', [
+    $response = $this->actingAs($user)->withSession(['_token' => $token])->post('/confirm-password', [
+        '_token' => $token,
         'password' => 'password',
     ]);
 
@@ -22,9 +26,12 @@ test('password can be confirmed', function () {
 });
 
 test('password is not confirmed with invalid password', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->create();
+    $token = csrf_token();
 
-    $response = $this->actingAs($user)->post('/confirm-password', [
+    $response = $this->actingAs($user)->withSession(['_token' => $token])->post('/confirm-password', [
+        '_token' => $token,
         'password' => 'wrong-password',
     ]);
 

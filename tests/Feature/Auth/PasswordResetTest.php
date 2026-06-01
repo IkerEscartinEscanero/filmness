@@ -5,27 +5,38 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 
 test('reset password link screen can be rendered', function () {
+    /** @var \Tests\TestCase $this */
     $response = $this->get('/forgot-password');
 
     $response->assertStatus(200);
 });
 
 test('reset password link can be requested', function () {
+    /** @var \Tests\TestCase $this */
     Notification::fake();
 
     $user = User::factory()->create();
+    $token = csrf_token();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->withSession(['_token' => $token])->post('/forgot-password', [
+        '_token' => $token,
+        'email' => $user->email,
+    ]);
 
     Notification::assertSentTo($user, ResetPassword::class);
 });
 
 test('reset password screen can be rendered', function () {
+    /** @var \Tests\TestCase $this */
     Notification::fake();
 
     $user = User::factory()->create();
+    $token = csrf_token();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->withSession(['_token' => $token])->post('/forgot-password', [
+        '_token' => $token,
+        'email' => $user->email,
+    ]);
 
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
         $response = $this->get('/reset-password/'.$notification->token);
@@ -37,14 +48,20 @@ test('reset password screen can be rendered', function () {
 });
 
 test('password can be reset with valid token', function () {
+    /** @var \Tests\TestCase $this */
     Notification::fake();
 
     $user = User::factory()->create();
+    $token = csrf_token();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->withSession(['_token' => $token])->post('/forgot-password', [
+        '_token' => $token,
+        'email' => $user->email,
+    ]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-        $response = $this->post('/reset-password', [
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user, $token) {
+        $response = $this->withSession(['_token' => $token])->post('/reset-password', [
+            '_token' => $token,
             'token' => $notification->token,
             'email' => $user->email,
             'password' => 'password',

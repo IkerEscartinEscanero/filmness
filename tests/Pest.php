@@ -18,6 +18,11 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
+beforeEach(function () {
+    /** @var \Tests\TestCase $this */
+    $this->withoutMiddleware();
+});
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
