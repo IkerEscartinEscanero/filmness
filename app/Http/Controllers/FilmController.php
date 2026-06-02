@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Throwable;
 
 class FilmController extends Controller {
     private const YOUTUBE_URL_REGEX = '/^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/)|youtu\.be\/)[A-Za-z0-9_-]{11}([&?].*)?$/';
@@ -160,11 +161,19 @@ class FilmController extends Controller {
         return redirect()->route('admin.dashboard')->with('success', 'Película creada exitosamente.');
     }
 
-    public function edit(Film $film) {
+    public function edit(Request $request, Film $film) {
         $this->ensureAdmin();
+
+        $returnUrl = $request->headers->get('referer') ?? route('admin.dashboard');
+
+        // Avoid redirect loops when edit is refreshed directly
+        if ($returnUrl === $request->fullUrl()) {
+            $returnUrl = route('admin.dashboard');
+        }
 
         return Inertia::render('Films/Admin/Edit', [
             'film' => $film,
+            'returnUrl' => $returnUrl,
         ]);
     }
 
@@ -184,26 +193,37 @@ class FilmController extends Controller {
             'trailer_url' => $this->youtubeTrailerRules(),
         ]);
 
-        if ($request->hasFile('logo')) {
-            if ($film->logo) {
-                Storage::disk('public')->delete($film->logo);
+        try {
+            if ($request->hasFile('logo')) {
+                if ($film->logo) {
+                    Storage::disk('public')->delete($film->logo);
+                }
+                $validated['logo'] = $request->file('logo')->store('logos', 'public');
+            } else {
+                unset($validated['logo']);
             }
-            $validated['logo'] = $request->file('logo')->store('logos', 'public');
-        } else {
-            unset($validated['logo']);
-        }
-        if ($request->hasFile('poster')) {
-            if ($film->poster) {
-                Storage::disk('public')->delete($film->poster);
+
+            if ($request->hasFile('poster')) {
+                if ($film->poster) {
+                    Storage::disk('public')->delete($film->poster);
+                }
+                $validated['poster'] = $request->file('poster')->store('posters', 'public');
+            } else {
+                unset($validated['poster']);
             }
-            $validated['poster'] = $request->file('poster')->store('posters', 'public');
-        } else {
-            unset($validated['poster']);
+
+            $film->update($validated);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'No se ha podido actualizar la película. Inténtalo de nuevo.');
         }
 
-        $film->update($validated);
+        $returnTo = $request->input('return_to');
+        $isRelativePath = is_string($returnTo) && str_starts_with($returnTo, '/');
+        $redirectTarget = $isRelativePath ? $returnTo : route('admin.dashboard');
 
-        return redirect()->route('admin.dashboard')->with('success', 'Película actualizada exitosamente.');
+        return redirect()->to($redirectTarget)->with('success', 'Película actualizada exitosamente.');
     }
 
     public function destroy(Film $film) {

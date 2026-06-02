@@ -5,6 +5,7 @@ import { Head } from '@inertiajs/vue3';
 
 defineProps({
     film: Object,
+    returnUrl: String,
 });
 </script>
 
@@ -14,7 +15,7 @@ defineProps({
 
         <main class="min-h-screen bg-[#0F172A] text-white py-10">
             <div class="mx-auto max-w-7xl px-6">
-                <FilmsForm :film="film" />
+                <FilmsForm :film="film" :return-url="returnUrl" />
             </div>
         </main>
     </Layout>

@@ -9,16 +9,22 @@
     const desktopProfileMenuRef = ref(null);
     const mobileProfileMenuRef = ref(null);
     const dismissAuthNotice = ref(false);
+    const dismissFlashNotice = ref(false);
     const { isDarkMode, initializeTheme, toggleTheme } = useTheme();
     const page = usePage();
     const guestAvatar = '/images/FotoPerfil.png';
     const authenticatedAvatar = '/images/Render3.png';
     const authenticatedFrame = '/images/Render1.png';
     let authNoticeTimeout = null;
+    let flashNoticeTimeout = null;
 
     // These computed values keep the template clean and react to auth changes automatically
     const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
     const authNotice = computed(() => page.props.flash?.authNotice ?? null);
+    const flashSuccess = computed(() => page.props.flash?.success ?? null);
+    const flashError = computed(() => page.props.flash?.error ?? null);
+    const flashNotice = computed(() => flashError.value ?? flashSuccess.value ?? null);
+    const flashNoticeType = computed(() => (flashError.value ? 'error' : 'success'));
     const resolveAvatarPath = (path) => {
         if (!path) return authenticatedAvatar;
         if (path.startsWith('http://') || path.startsWith('https://')) return path;
@@ -88,6 +94,39 @@
             ? 'text-emerald-200 transition-colors duration-200 hover:text-white'
             : 'text-emerald-600 transition-colors duration-200 hover:text-emerald-900'
     ));
+    const flashNoticeWrapperClass = computed(() => {
+        if (flashNoticeType.value === 'error') {
+            return isDarkMode.value
+                ? 'pointer-events-auto flex w-[min(28rem,calc(100vw-3rem))] items-start justify-between gap-4 rounded-2xl border border-red-400/30 bg-slate-900/95 px-4 py-3 text-sm text-red-100 shadow-lg'
+                : 'pointer-events-auto flex w-[min(28rem,calc(100vw-3rem))] items-start justify-between gap-4 rounded-2xl border border-red-500/35 bg-white/95 px-4 py-3 text-sm text-red-800 shadow-lg';
+        }
+
+        return isDarkMode.value
+            ? 'pointer-events-auto flex w-[min(28rem,calc(100vw-3rem))] items-start justify-between gap-4 rounded-2xl border border-emerald-400/20 bg-slate-900/95 px-4 py-3 text-sm text-emerald-100 shadow-lg'
+            : 'pointer-events-auto flex w-[min(28rem,calc(100vw-3rem))] items-start justify-between gap-4 rounded-2xl border border-emerald-500/30 bg-white/95 px-4 py-3 text-sm text-emerald-800 shadow-lg';
+    });
+    const flashNoticeBadgeClass = computed(() => {
+        if (flashNoticeType.value === 'error') {
+            return isDarkMode.value
+                ? 'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-400/20 text-red-300'
+                : 'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-red-700';
+        }
+
+        return isDarkMode.value
+            ? 'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/15 text-emerald-300'
+            : 'mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700';
+    });
+    const flashNoticeCloseButtonClass = computed(() => {
+        if (flashNoticeType.value === 'error') {
+            return isDarkMode.value
+                ? 'text-red-200 transition-colors duration-200 hover:text-white'
+                : 'text-red-600 transition-colors duration-200 hover:text-red-900';
+        }
+
+        return isDarkMode.value
+            ? 'text-emerald-200 transition-colors duration-200 hover:text-white'
+            : 'text-emerald-600 transition-colors duration-200 hover:text-emerald-900';
+    });
     const desktopAvatarClass = 'pointer-events-none absolute left-1/2 top-1/2 h-[2.85rem] w-[2.85rem] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain';
     const mobileAvatarClass = 'pointer-events-none absolute left-1/2 top-1/2 h-[2.55rem] w-[2.55rem] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain';
 
@@ -95,6 +134,13 @@
         if (authNoticeTimeout) {
             window.clearTimeout(authNoticeTimeout);
             authNoticeTimeout = null;
+        }
+    };
+
+    const clearFlashNoticeTimer = () => {
+        if (flashNoticeTimeout) {
+            window.clearTimeout(flashNoticeTimeout);
+            flashNoticeTimeout = null;
         }
     };
 
@@ -127,6 +173,11 @@
         clearAuthNoticeTimer();
     };
 
+    const hideFlashNotice = () => {
+        dismissFlashNotice.value = true;
+        clearFlashNoticeTimer();
+    };
+
     // When a new flash message arrives, show it again and hide it automatically after a few seconds
     watch(
         authNotice,
@@ -143,6 +194,21 @@
         { immediate: true },
     );
 
+    watch(
+        flashNotice,
+        (value) => {
+            dismissFlashNotice.value = false;
+            clearFlashNoticeTimer();
+
+            if (value) {
+                flashNoticeTimeout = window.setTimeout(() => {
+                    dismissFlashNotice.value = true;
+                }, 5000);
+            }
+        },
+        { immediate: true },
+    );
+
     onMounted(() => {
         initializeTheme();
         document.addEventListener('click', handleOutsideClick);
@@ -151,6 +217,7 @@
     onBeforeUnmount(() => {
         document.removeEventListener('click', handleOutsideClick);
         clearAuthNoticeTimer();
+        clearFlashNoticeTimer();
     });
 </script>
 
@@ -356,6 +423,36 @@
                         :class="authNoticeCloseButtonClass"
                         @click="hideAuthNotice"
                         aria-label="Cerrar aviso"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </Transition>
+
+        <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 -translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-150 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-2"
+        >
+            <div
+                v-if="flashNotice && !dismissFlashNotice"
+                class="pointer-events-none absolute right-6 top-full z-50 mt-3"
+            >
+                <div :class="flashNoticeWrapperClass">
+                    <div class="flex items-start gap-3">
+                        <span :class="flashNoticeBadgeClass">{{ flashNoticeType === 'error' ? '!' : '✓' }}</span>
+                        <p>{{ flashNotice }}</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        :class="flashNoticeCloseButtonClass"
+                        @click="hideFlashNotice"
+                        aria-label="Cerrar notificacion"
                     >
                         ✕
                     </button>

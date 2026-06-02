@@ -9,6 +9,10 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    returnUrl: {
+        type: String,
+        default: null,
+    },
 });
 
 const isEditing = !!props.film;
@@ -24,7 +28,10 @@ const form = useForm({
     synopsis: props.film?.synopsis ?? '',
     duration: props.film?.duration ?? '',
     trailer_url: props.film?.trailer_url ?? '',
+    return_to: props.returnUrl ?? '',
 });
+
+const formNotice = ref(null);
 
 const logoPreview = ref(null);
 const posterPreview = ref(null);
@@ -55,18 +62,31 @@ const handlePosterChange = (e) => {
 };
 
 const submit = () => {
+    if (form.processing) return;
+
+    formNotice.value = null;
+
     if (isEditing) {
         form.put(`/films/${props.film.id}`, {
-            onSuccess: () => cancelAndGoBack(),
+            onError: () => {
+                formNotice.value = 'No se ha podido actualizar la pelicula. Revisa los campos e intentalo de nuevo.';
+            },
         });
     } else {
         form.post('/films', {
-            onSuccess: () => cancelAndGoBack(),
+            onError: () => {
+                formNotice.value = 'No se ha podido crear la pelicula. Revisa los campos e intentalo de nuevo.';
+            },
         });
     }
 };
 
 const cancelAndGoBack = () => {
+    if (props.returnUrl && props.returnUrl.startsWith('/')) {
+        router.visit(props.returnUrl);
+        return;
+    }
+
     if (window.history.length > 1) {
         window.history.back();
         return;
@@ -81,6 +101,13 @@ const cancelAndGoBack = () => {
         <h1 class="text-2xl font-bold text-white mb-6">
             {{ isEditing ? 'Editar película' : 'Insertar nueva película' }}
         </h1>
+
+        <div
+            v-if="formNotice"
+            class="rounded-md px-4 py-3 text-sm bg-red-500/15 text-red-300 border border-red-500/30"
+        >
+            {{ formNotice }}
+        </div>
 
         <form @submit.prevent="submit" class="space-y-6">
             <div>
