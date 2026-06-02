@@ -13,8 +13,8 @@ import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/compon
 use([CanvasRenderer, LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent]);
 
 const props = defineProps({
-    billboardFilms: Array,
-    upcomingFilms: Array,
+    billboardFilms: Object,
+    upcomingFilms: Object,
     kpis: Object,
     topFilmsRevenue: Array,
     monthlyRevenueSeries: Array,
@@ -31,10 +31,58 @@ const sessionIdToDelete = ref(null);
 const selectedFilm = computed(() => {
     if (!selectedFilmId.value) return null;
 
-    const films = [...(props.billboardFilms ?? []), ...(props.upcomingFilms ?? [])];
+    const films = [
+        ...(props.billboardFilms?.data ?? []),
+        ...(props.upcomingFilms?.data ?? []),
+    ];
 
     return films.find((film) => film.id === selectedFilmId.value) ?? null;
 });
+
+const buildPaginationItems = (paginator) => {
+    const current = Number(paginator?.current_page ?? 1);
+    const last = Number(paginator?.last_page ?? 1);
+
+    if (last <= 1) return [1];
+    if (last <= 4) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+    }
+
+    if (current <= 3) {
+        return [1, 2, 3, '...', last];
+    }
+
+    if (current >= last - 2) {
+        return [1, '...', last - 2, last - 1, last];
+    }
+
+    return [1, '...', current - 1, current, current + 1, '...', last];
+};
+
+const goToDashboardPage = (pageName, page) => {
+    router.get(
+        '/admin/dashboard',
+        {
+            billboard_page: pageName === 'billboard_page' ? page : (props.billboardFilms?.current_page ?? 1),
+            upcoming_page: pageName === 'upcoming_page' ? page : (props.upcomingFilms?.current_page ?? 1),
+        },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        },
+    );
+};
+
+const goToBillboardPage = (page) => {
+    if (page < 1 || page === props.billboardFilms?.current_page) return;
+    goToDashboardPage('billboard_page', page);
+};
+
+const goToUpcomingPage = (page) => {
+    if (page < 1 || page === props.upcomingFilms?.current_page) return;
+    goToDashboardPage('upcoming_page', page);
+};
 
 const openSessionsModal = (film) => {
     selectedFilmId.value = film.id;
@@ -318,7 +366,7 @@ const donutChartOption = computed(() => ({
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700">
-                                <tr v-for="film in billboardFilms" :key="film.id" class="hover:bg-slate-700/50 transition">
+                                <tr v-for="film in billboardFilms.data" :key="film.id" class="hover:bg-slate-700/50 transition">
                                     <td class="px-6 py-4 text-sm text-white font-medium">{{ film.title }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-300">{{ film.director || '-' }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-300">{{ film.genre }}</td>
@@ -345,8 +393,47 @@ const donutChartOption = computed(() => ({
                                 </tr>
                             </tbody>
                         </table>
-                        <div v-if="billboardFilms.length === 0" class="text-center py-8 text-slate-400">
+                        <div v-if="(billboardFilms.data?.length ?? 0) === 0" class="text-center py-8 text-slate-400">
                             No hay películas en cartelera
+                        </div>
+
+                        <div
+                            v-if="(billboardFilms.last_page ?? 1) > 1"
+                            class="mt-5 flex items-center justify-end gap-2 text-sm"
+                        >
+                            <button
+                                v-if="(billboardFilms.current_page ?? 1) > 1"
+                                type="button"
+                                @click="goToBillboardPage((billboardFilms.current_page ?? 1) - 1)"
+                                class="rounded-md border border-slate-600 px-3 py-1 text-slate-200 transition hover:border-yellow-500 hover:text-yellow-400"
+                            >
+                                &lt;
+                            </button>
+
+                            <button
+                                v-for="(item, index) in buildPaginationItems(billboardFilms)"
+                                :key="`billboard-${index}-${item}`"
+                                type="button"
+                                :disabled="item === '...'"
+                                @click="item !== '...' && goToBillboardPage(item)"
+                                class="min-w-8 rounded-md border px-3 py-1 transition"
+                                :class="item === '...'
+                                    ? 'cursor-default border-transparent text-slate-500'
+                                    : item === billboardFilms.current_page
+                                        ? 'border-yellow-500 bg-yellow-500 text-slate-950 font-semibold'
+                                        : 'border-slate-600 text-slate-200 hover:border-yellow-500 hover:text-yellow-400'"
+                            >
+                                {{ item }}
+                            </button>
+
+                            <button
+                                v-if="(billboardFilms.current_page ?? 1) < (billboardFilms.last_page ?? 1)"
+                                type="button"
+                                @click="goToBillboardPage((billboardFilms.current_page ?? 1) + 1)"
+                                class="rounded-md border border-slate-600 px-3 py-1 text-slate-200 transition hover:border-yellow-500 hover:text-yellow-400"
+                            >
+                                &gt;
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -376,7 +463,7 @@ const donutChartOption = computed(() => ({
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-700">
-                                <tr v-for="film in upcomingFilms" :key="film.id" class="hover:bg-slate-700/50 transition">
+                                <tr v-for="film in upcomingFilms.data" :key="film.id" class="hover:bg-slate-700/50 transition">
                                     <td class="px-6 py-4 text-sm text-white font-medium">{{ film.title }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-300">{{ film.director || '-' }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-300">{{ film.genre }}</td>
@@ -403,8 +490,47 @@ const donutChartOption = computed(() => ({
                                 </tr>
                             </tbody>
                         </table>
-                        <div v-if="upcomingFilms.length === 0" class="text-center py-8 text-slate-400">
+                        <div v-if="(upcomingFilms.data?.length ?? 0) === 0" class="text-center py-8 text-slate-400">
                             No hay próximos estrenos
+                        </div>
+
+                        <div
+                            v-if="(upcomingFilms.last_page ?? 1) > 1"
+                            class="mt-5 flex items-center justify-end gap-2 text-sm"
+                        >
+                            <button
+                                v-if="(upcomingFilms.current_page ?? 1) > 1"
+                                type="button"
+                                @click="goToUpcomingPage((upcomingFilms.current_page ?? 1) - 1)"
+                                class="rounded-md border border-slate-600 px-3 py-1 text-slate-200 transition hover:border-yellow-500 hover:text-yellow-400"
+                            >
+                                &lt;
+                            </button>
+
+                            <button
+                                v-for="(item, index) in buildPaginationItems(upcomingFilms)"
+                                :key="`upcoming-${index}-${item}`"
+                                type="button"
+                                :disabled="item === '...'"
+                                @click="item !== '...' && goToUpcomingPage(item)"
+                                class="min-w-8 rounded-md border px-3 py-1 transition"
+                                :class="item === '...'
+                                    ? 'cursor-default border-transparent text-slate-500'
+                                    : item === upcomingFilms.current_page
+                                        ? 'border-yellow-500 bg-yellow-500 text-slate-950 font-semibold'
+                                        : 'border-slate-600 text-slate-200 hover:border-yellow-500 hover:text-yellow-400'"
+                            >
+                                {{ item }}
+                            </button>
+
+                            <button
+                                v-if="(upcomingFilms.current_page ?? 1) < (upcomingFilms.last_page ?? 1)"
+                                type="button"
+                                @click="goToUpcomingPage((upcomingFilms.current_page ?? 1) + 1)"
+                                class="rounded-md border border-slate-600 px-3 py-1 text-slate-200 transition hover:border-yellow-500 hover:text-yellow-400"
+                            >
+                                &gt;
+                            </button>
                         </div>
                     </div>
                 </div>

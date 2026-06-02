@@ -17,6 +17,7 @@ class DashboardController extends Controller
         abort_unless(Auth::user()?->role === 'admin', 403);
 
         $dbDriver = DB::connection()->getDriverName();
+        $perPage = 8;
 
         $today = now()->startOfDay();
 
@@ -24,13 +25,15 @@ class DashboardController extends Controller
         $billboardFilms = Film::where('release_date', '<=', $today)
             ->orderByDesc('release_date')
             ->with(['movieSessions' => fn ($q) => $q->where('date', '>=', now())->with('room')])
-            ->get();
+            ->paginate($perPage, ['*'], 'billboard_page')
+            ->withQueryString();
 
         // Upcoming films
         $upcomingFilms = Film::where('release_date', '>', $today)
             ->orderBy('release_date')
             ->with(['movieSessions' => fn ($q) => $q->where('date', '>=', now())->with('room')])
-            ->get();
+            ->paginate($perPage, ['*'], 'upcoming_page')
+            ->withQueryString();
 
         // KPIs for the current month
         $currentMonthStart = now()->startOfMonth()->toDateString();
@@ -108,8 +111,8 @@ class DashboardController extends Controller
             'kpis' => [
                 'monthlyRevenue' => (float) $monthlyRevenue,
                 'monthlyTickets' => $monthlyTickets,
-                'billboardCount' => $billboardFilms->count(),
-                'upcomingCount' => $upcomingFilms->count(),
+                'billboardCount' => $billboardFilms->total(),
+                'upcomingCount' => $upcomingFilms->total(),
             ],
             'topFilmsRevenue' => $topFilmsRevenue,
             'monthlyRevenueSeries' => $monthlyRevenueSeries,
