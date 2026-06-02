@@ -106,7 +106,7 @@ class FilmController extends Controller {
         $today = now()->toDateString();
 
         $films = Film::where('release_date', '<=', $today)
-            ->orderByDesc('release_date')
+            ->orderBy('title')
             ->get();
 
         return Inertia::render('Cartelera', [
@@ -118,7 +118,8 @@ class FilmController extends Controller {
         $today = now()->toDateString();
 
         $films = Film::where('release_date', '>', $today)
-            ->orderBy('release_date')
+            ->orderBy('release_date', 'asc')
+            ->orderBy('title')
             ->get();
 
         return Inertia::render('ProximosEstrenos', [
