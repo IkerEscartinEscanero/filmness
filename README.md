@@ -71,7 +71,7 @@ php artisan storage:link
 10. Iniciar la aplicación en local.
 
 ```bash
-composer run local
+npm run local
 ```
 
 Cuando todo está correcto, la aplicación queda accesible en `http://localhost:8000`.
